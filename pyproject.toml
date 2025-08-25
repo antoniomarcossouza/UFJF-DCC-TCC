@@ -1,0 +1,28 @@
+[project]
+name = "ufjf-tcc"
+version = "0.0.1"
+requires-python = ">=3.13"
+dependencies = [
+    "dagster>=1.11.7",
+    "dagster-dg-cli>=1.11.7",
+    "dagster-webserver>=1.11.7",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.12.10", "sqlfluff>=3.4.2"]
+
+# Dagster
+[tool.dg]
+directory_type = "project"
+
+[tool.dg.project]
+root_module = "execucao_orcamentaria"
+registry_modules = ["execucao_orcamentaria.lib.*"]
+
+# Ruff
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "A", "I", "B", "PL", "ERA"]
