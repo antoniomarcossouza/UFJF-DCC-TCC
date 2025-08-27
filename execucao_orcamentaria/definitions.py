@@ -1,8 +1,9 @@
-from pathlib import Path
+import dagster as dg
 
-from dagster import definitions, load_from_defs_folder
+import execucao_orcamentaria.defs
 
 
-@definitions
-def defs():
-    return load_from_defs_folder(project_root=Path(__file__).parent)
+@dg.components.definitions
+def defs() -> dg.Definitions:
+
+    return dg.components.load_defs(execucao_orcamentaria.defs)
