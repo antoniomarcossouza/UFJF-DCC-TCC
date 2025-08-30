@@ -1,3 +1,5 @@
 __pycache__/
 .tmp_dagster_*/
-data/*.duckdb
+
+*.duckdb
+*.xls
