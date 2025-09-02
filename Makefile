@@ -1,5 +1,5 @@
 uv_install:
-	pip install uv
+	pip install uv --break-system-packages
 
 uv_venv:
 	if [ ! -d ".venv" ]; then uv venv; fi
