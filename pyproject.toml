@@ -32,4 +32,4 @@ registry_modules = ["execucao_orcamentaria.lib.*"]
 line-length = 79
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "A", "I", "B", "PL", "ERA"]
+select = ["E", "W", "F", "A", "I", "B", "PLC", "PLE", "PLW", "ERA"]
