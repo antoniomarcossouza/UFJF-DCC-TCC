@@ -9,6 +9,22 @@ from dagster.components import definitions
 from dagster_duckdb import DuckDBResource
 
 
+def write_df_to_duckdb(
+    duckdb: DuckDBResource, _df: pd.DataFrame, schema: str, table: str
+):
+    """
+    Insere um DataFrame pandas no DuckDB,
+    criando schema/tabela se não existirem.
+    """
+    with duckdb.get_connection() as conn:
+        conn.execute(f"create schema if not exists {schema}")
+        conn.execute(f"""
+            create table if not exists {schema}.{table} as
+            select * from _df limit 0
+            """)
+        conn.execute(f"insert into {schema}.{table} select * from _df")
+
+
 def fetch_xls(url: str) -> bytes:
     """Baixa XLS bruto de uma URL."""
     response = requests.get(url)
@@ -16,7 +32,7 @@ def fetch_xls(url: str) -> bytes:
     return response.content
 
 
-def read_receita_pre2505(filepath: Path):
+def read_receita_comparativa_pre2505(filepath: Path):
     def rename_cols_pre2505(col: str) -> str:
         col = col.strip()
         col = col.replace("\n", " ")
@@ -60,7 +76,7 @@ def read_receita_pre2505(filepath: Path):
     return df
 
 
-def read_receita_post2505(filepath: Path):
+def read_receita_comparativa_2505(filepath: Path):
     df = pd.read_excel(filepath, skiprows=5)
     df.columns = [
         "Natureza",
@@ -73,6 +89,22 @@ def read_receita_post2505(filepath: Path):
     ]
     df["nm_arquivo"] = filepath.name
     df["dt_atualizacao"] = pd.Timestamp.utcnow()
+    return df
+
+
+def read_receita_prevista(filepath: Path):
+    df = pd.read_excel(filepath, skiprows=2)
+    df["NATUREZA DE RECEITA"] = (
+        df["NATUREZA DE RECEITA"].astype(str)
+        + " - "
+        + df["Unnamed: 1"].astype(str)
+    )
+    df = df.drop(columns=["Unnamed: 1"])
+    df["nm_arquivo"] = filepath.name
+    df["dt_atualizacao"] = pd.Timestamp.utcnow()
+
+    df.columns = [c.title() for c in df.columns]
+
     return df
 
 
@@ -120,7 +152,7 @@ receita_mensal_comparativa_partition = dg.TimeWindowPartitionsDefinition(
 @dg.asset(
     partitions_def=receita_mensal_prevista_partition,
     kinds={"python", "excel"},
-    group_name="receitas",
+    group_name="pjf",
 )
 def receita_mensal_prevista(
     context: dg.AssetExecutionContext,
@@ -146,9 +178,34 @@ def receita_mensal_prevista(
 
 
 @dg.asset(
+    kinds={"pandas", "duckdb"},
+    group_name="pjf",
+    deps=[receita_mensal_prevista],
+)
+def stg_receita_mensal_prevista(
+    fs: LocalFSResource,
+    duckdb: DuckDBResource,
+) -> dg.MaterializeResult:
+    receita_prevista = [
+        f for f in fs.glob("pjf_receita_mensal_prevista", "*.xls")
+    ]
+
+    df = pd.concat([read_receita_prevista(r) for r in receita_prevista])
+
+    write_df_to_duckdb(
+        duckdb=duckdb,
+        _df=df,
+        schema="stg",
+        table="pjf_receita_mensal_prevista",
+    )
+
+    return dg.MaterializeResult()
+
+
+@dg.asset(
     partitions_def=receita_mensal_comparativa_partition,
     kinds={"python", "excel"},
-    group_name="receitas",
+    group_name="pjf",
 )
 def receita_mensal_comparativa(
     context: dg.AssetExecutionContext,
@@ -170,7 +227,7 @@ def receita_mensal_comparativa(
 
 @dg.asset(
     kinds={"pandas", "duckdb"},
-    group_name="receitas",
+    group_name="pjf",
     deps=[receita_mensal_comparativa],
 )
 def stg_receita_mensal_comparativa(
@@ -183,28 +240,26 @@ def stg_receita_mensal_comparativa(
         if int(f.name.split(".")[0]) < 2505
     ]
 
-    receita_mensal_post2505 = [
+    receita_mensal_2505 = [
         f
         for f in fs.glob("pjf_receita_mensal_comparativa", "*.xls")
         if int(f.name.split(".")[0]) >= 2505
     ]
 
-    _df = pd.concat(
-        [read_receita_pre2505(r) for r in receita_mensal_pre2505]
-        + [read_receita_post2505(r) for r in receita_mensal_post2505]
+    df = pd.concat(
+        [read_receita_comparativa_pre2505(r) for r in receita_mensal_pre2505]
+        + [
+            read_receita_comparativa_2505(r)
+            for r in receita_mensal_2505
+        ]
     )
 
-    schema = "stg"
-    table = "pjf_receita_mensal_comparativa"
-    with duckdb.get_connection() as conn:
-        conn.execute(f"create schema if not exists {schema}")
-        conn.execute(
-            f"""
-            create table if not exists {schema}.{table} as
-            select * from _df limit 0
-            """
-        )
-        conn.execute(f"insert into {schema}.{table} select * from _df")
+    write_df_to_duckdb(
+        duckdb=duckdb,
+        _df=df,
+        schema="stg",
+        table="pjf_receita_mensal_comparativa",
+    )
 
     return dg.MaterializeResult()
 
@@ -215,6 +270,7 @@ def defs():
         assets=[
             receita_mensal_prevista,
             receita_mensal_comparativa,
+            stg_receita_mensal_prevista,
             stg_receita_mensal_comparativa,
         ],
         resources={
