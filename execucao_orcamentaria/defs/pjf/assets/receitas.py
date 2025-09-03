@@ -1,9 +1,12 @@
+import re
 from datetime import datetime
+from pathlib import Path
 
 import dagster as dg
-from pathlib import Path
+import pandas as pd
 import requests
 from dagster.components import definitions
+from dagster_duckdb import DuckDBResource
 
 
 def fetch_xls(url: str) -> bytes:
@@ -11,6 +14,66 @@ def fetch_xls(url: str) -> bytes:
     response = requests.get(url)
     response.raise_for_status()
     return response.content
+
+
+def read_receita_pre2505(filepath: Path):
+    def rename_cols_pre2505(col: str) -> str:
+        col = col.strip()
+        col = col.replace("\n", " ")
+        col = re.sub(r"\s+", " ", col)
+        col = col.lower()
+
+        if "receita total" in col:
+            return "Código"
+
+        if "unnamed: 1" in col:
+            return "Descrição"
+
+        if "previsão inicial" in col:
+            return "Previsão Inicial"
+
+        if "previsão atualizada" in col:
+            return "Previsão Atualizada"
+
+        if "arrecadada" in col and " em" in col:
+            return "Arrecadada Mês"
+
+        if "arrecadada" in col and " até" in col:
+            return "Arrecadada Ano"
+
+        if "a realizar" in col:
+            return "A Realizar"
+
+        return col
+
+    df = pd.read_excel(
+        filepath,
+        skiprows=1,
+    )
+    df.columns = [rename_cols_pre2505(c) for c in df.columns]
+    df["Natureza"] = (
+        df["Código"].astype(str) + " - " + df["Descrição"].astype(str)
+    )
+    df = df.drop(columns=["Código", "Descrição"])
+    df["nm_arquivo"] = filepath.name
+    df["dt_atualizacao"] = pd.Timestamp.utcnow()
+    return df
+
+
+def read_receita_post2505(filepath: Path):
+    df = pd.read_excel(filepath, skiprows=5)
+    df.columns = [
+        "Natureza",
+        "Fonte TCE",
+        "Previsão Inicial",
+        "Previsão Atualizada",
+        "Arrecadada Mês",
+        "Arrecadada Ano",
+        "A Realizar",
+    ]
+    df["nm_arquivo"] = filepath.name
+    df["dt_atualizacao"] = pd.Timestamp.utcnow()
+    return df
 
 
 class LocalFSResource(dg.ConfigurableResource):
@@ -29,6 +92,16 @@ class LocalFSResource(dg.ConfigurableResource):
         with filepath.open("wb") as f:
             f.write(content)
 
+    def glob(self, directory: str, pattern: str = "*"):
+        """
+        Retorna uma lista de Paths dentro de
+        `directory` que batem com `pattern`.
+        """
+        dir_path = Path(self.base_path) / directory
+        if not dir_path.exists():
+            return []
+        return list(dir_path.glob(pattern))
+
 
 receita_mensal_prevista_partition = dg.TimeWindowPartitionsDefinition(
     start=datetime(2020, 1, 1),
@@ -46,9 +119,8 @@ receita_mensal_comparativa_partition = dg.TimeWindowPartitionsDefinition(
 
 @dg.asset(
     partitions_def=receita_mensal_prevista_partition,
-    kinds={"python", "pandas", "duckdb"},
+    kinds={"python", "excel"},
     group_name="receitas",
-    description="Receita Mensal Prevista",
 )
 def receita_mensal_prevista(
     context: dg.AssetExecutionContext,
@@ -75,9 +147,8 @@ def receita_mensal_prevista(
 
 @dg.asset(
     partitions_def=receita_mensal_comparativa_partition,
-    kinds={"python", "pandas", "duckdb"},
+    kinds={"python", "excel"},
     group_name="receitas",
-    description="Receita Mensal Comparativa",
 )
 def receita_mensal_comparativa(
     context: dg.AssetExecutionContext,
@@ -97,16 +168,58 @@ def receita_mensal_comparativa(
     return dg.MaterializeResult()
 
 
+@dg.asset(
+    kinds={"pandas", "duckdb"},
+    group_name="receitas",
+    deps=[receita_mensal_comparativa],
+)
+def stg_receita_mensal_comparativa(
+    fs: LocalFSResource,
+    duckdb: DuckDBResource,
+) -> dg.MaterializeResult:
+    receita_mensal_pre2505 = [
+        f
+        for f in fs.glob("pjf_receita_mensal_comparativa", "*.xls")
+        if int(f.name.split(".")[0]) < 2505
+    ]
+
+    receita_mensal_post2505 = [
+        f
+        for f in fs.glob("pjf_receita_mensal_comparativa", "*.xls")
+        if int(f.name.split(".")[0]) >= 2505
+    ]
+
+    _df = pd.concat(
+        [read_receita_pre2505(r) for r in receita_mensal_pre2505]
+        + [read_receita_post2505(r) for r in receita_mensal_post2505]
+    )
+
+    schema = "stg"
+    table = "pjf_receita_mensal_comparativa"
+    with duckdb.get_connection() as conn:
+        conn.execute(f"create schema if not exists {schema}")
+        conn.execute(
+            f"""
+            create table if not exists {schema}.{table} as
+            select * from _df limit 0
+            """
+        )
+        conn.execute(f"insert into {schema}.{table} select * from _df")
+
+    return dg.MaterializeResult()
+
+
 @definitions
 def defs():
     return dg.Definitions(
         assets=[
             receita_mensal_prevista,
             receita_mensal_comparativa,
+            stg_receita_mensal_comparativa,
         ],
         resources={
             "fs": LocalFSResource(
-                base_path="/home/antonio/projects/ufjf/ufjf-tcc/data"
+                base_path=str((Path.cwd() / "data").resolve())
             )
         },
     )
