@@ -8,21 +8,8 @@ import requests
 from dagster.components import definitions
 from dagster_duckdb import DuckDBResource
 
-
-def write_df_to_duckdb(
-    duckdb: DuckDBResource, _df: pd.DataFrame, schema: str, table: str
-):
-    """
-    Insere um DataFrame pandas no DuckDB,
-    criando schema/tabela se não existirem.
-    """
-    with duckdb.get_connection() as conn:
-        conn.execute(f"create schema if not exists {schema}")
-        conn.execute(f"""
-            create table if not exists {schema}.{table} as
-            select * from _df limit 0
-            """)
-        conn.execute(f"insert into {schema}.{table} select * from _df")
+from execucao_orcamentaria.defs.filesystem.resources import LocalFSResource
+from execucao_orcamentaria.utils.duckdb import write_df_to_duckdb
 
 
 def fetch_xls(url: str) -> bytes:
@@ -106,33 +93,6 @@ def read_receita_prevista(filepath: Path):
     df.columns = [c.title() for c in df.columns]
 
     return df
-
-
-class LocalFSResource(dg.ConfigurableResource):
-    base_path: str
-
-    def save_bytes(
-        self,
-        content: bytes,
-        directory: str,
-        filename: str,
-    ) -> None:
-        """Salva bytes no filesystem local."""
-        filepath = Path(self.base_path) / directory / filename
-        filepath.parent.mkdir(exist_ok=True, parents=True)
-
-        with filepath.open("wb") as f:
-            f.write(content)
-
-    def glob(self, directory: str, pattern: str = "*"):
-        """
-        Retorna uma lista de Paths dentro de
-        `directory` que batem com `pattern`.
-        """
-        dir_path = Path(self.base_path) / directory
-        if not dir_path.exists():
-            return []
-        return list(dir_path.glob(pattern))
 
 
 receita_mensal_prevista_partition = dg.TimeWindowPartitionsDefinition(
@@ -248,10 +208,7 @@ def stg_receita_mensal_comparativa(
 
     df = pd.concat(
         [read_receita_comparativa_pre2505(r) for r in receita_mensal_pre2505]
-        + [
-            read_receita_comparativa_2505(r)
-            for r in receita_mensal_2505
-        ]
+        + [read_receita_comparativa_2505(r) for r in receita_mensal_2505]
     )
 
     write_df_to_duckdb(
@@ -272,10 +229,5 @@ def defs():
             receita_mensal_comparativa,
             stg_receita_mensal_prevista,
             stg_receita_mensal_comparativa,
-        ],
-        resources={
-            "fs": LocalFSResource(
-                base_path=str((Path.cwd() / "data").resolve())
-            )
-        },
+        ]
     )
