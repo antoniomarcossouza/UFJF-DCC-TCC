@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: staging
+    database: execucao_orcamentaria
+    schema: stg
+    tables:
+      - name: pjf_despesa_mensal_consolidada
+      - name: pjf_receita_mensal_comparativa
+      - name: pjf_receita_mensal_prevista
