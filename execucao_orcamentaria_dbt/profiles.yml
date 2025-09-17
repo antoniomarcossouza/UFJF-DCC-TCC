@@ -1,0 +1,6 @@
+execucao_orcamentaria_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "../data/execucao_orcamentaria.duckdb"
