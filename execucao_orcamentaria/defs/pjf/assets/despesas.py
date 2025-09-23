@@ -47,12 +47,13 @@ def read_despesa_mensal(filepath: Path):
 
 @dg.asset(
     partitions_def=year_month_partition,
-    kinds={"python", "excel"},
+    kinds={"excel", "pandas", "duckdb"},
     group_name="pjf",
 )
 def despesa_mensal_consolidada(
     context: dg.AssetExecutionContext,
     fs: LocalFSResource,
+    duckdb: DuckDBResource,
 ) -> dg.MaterializeResult:
     year_month = context.partition_key
 
@@ -65,23 +66,9 @@ def despesa_mensal_consolidada(
         filename=url.split("/")[-1],
     )
 
-    return dg.MaterializeResult()
+    filepath = fs.glob("pjf_despesa_mensal_consolidada", "*.xls")
 
-
-@dg.asset(
-    kinds={"pandas", "duckdb"},
-    group_name="pjf",
-    deps=[despesa_mensal_consolidada],
-)
-def stg_despesa_mensal_consolidada(
-    fs: LocalFSResource,
-    duckdb: DuckDBResource,
-) -> dg.MaterializeResult:
-    despesa_mensal = [
-        f for f in fs.glob("pjf_despesa_mensal_consolidada", "*.xls")
-    ]
-
-    df = pd.concat([read_despesa_mensal(r) for r in despesa_mensal])
+    df = read_despesa_mensal(filepath)
 
     write_df_to_duckdb(
         duckdb=duckdb,
@@ -98,6 +85,5 @@ def defs():
     return dg.Definitions(
         assets=[
             despesa_mensal_consolidada,
-            stg_despesa_mensal_consolidada,
         ]
     )

@@ -20,6 +20,8 @@ class LocalFSResource(dg.ConfigurableResource):
         with filepath.open("wb") as f:
             f.write(content)
 
+        return filepath
+
     def glob(self, directory: str, pattern: str = "*"):
         """
         Retorna uma lista de Paths dentro de

@@ -100,12 +100,13 @@ def read_receita_prevista(filepath: Path):
 
 @dg.asset(
     partitions_def=year_partition,
-    kinds={"python", "excel"},
+    kinds={"excel", "pandas", "duckdb"},
     group_name="pjf",
 )
 def receita_mensal_prevista(
     context: dg.AssetExecutionContext,
     fs: LocalFSResource,
+    duckdb: DuckDBResource,
 ) -> dg.MaterializeResult:
     """
     Baixa o XLS de receita mensal prevista,
@@ -117,29 +118,13 @@ def receita_mensal_prevista(
     url = f"https://www.pjf.mg.gov.br/transparencia/receitas/mensal/previsao/arquivos/xls/{year}.xls"
     content = fetch_xls(url)
 
-    fs.save_bytes(
+    filepath = fs.save_bytes(
         content=content,
         directory="pjf_receita_mensal_prevista",
         filename=url.split("/")[-1],
     )
 
-    return dg.MaterializeResult()
-
-
-@dg.asset(
-    kinds={"pandas", "duckdb"},
-    group_name="pjf",
-    deps=[receita_mensal_prevista],
-)
-def stg_receita_mensal_prevista(
-    fs: LocalFSResource,
-    duckdb: DuckDBResource,
-) -> dg.MaterializeResult:
-    receita_prevista = [
-        f for f in fs.glob("pjf_receita_mensal_prevista", "*.xls")
-    ]
-
-    df = pd.concat([read_receita_prevista(r) for r in receita_prevista])
+    df = read_receita_prevista(filepath)
 
     write_df_to_duckdb(
         duckdb=duckdb,
@@ -153,52 +138,28 @@ def stg_receita_mensal_prevista(
 
 @dg.asset(
     partitions_def=year_month_partition,
-    kinds={"python", "excel"},
+    kinds={"excel", "pandas", "duckdb"},
     group_name="pjf",
 )
 def receita_mensal_comparativa(
     context: dg.AssetExecutionContext,
     fs: LocalFSResource,
+    duckdb: DuckDBResource,
 ) -> dg.MaterializeResult:
     year_month = context.partition_key
 
     url = f"https://www.pjf.mg.gov.br/transparencia/receitas/mensal/comparativo/arquivos/xls/{year_month}.xls"
     content = fetch_xls(url)
 
-    fs.save_bytes(
+    filepath = fs.save_bytes(
         content=content,
         directory="pjf_receita_mensal_comparativa",
         filename=url.split("/")[-1],
     )
-
-    return dg.MaterializeResult()
-
-
-@dg.asset(
-    kinds={"pandas", "duckdb"},
-    group_name="pjf",
-    deps=[receita_mensal_comparativa],
-)
-def stg_receita_mensal_comparativa(
-    fs: LocalFSResource,
-    duckdb: DuckDBResource,
-) -> dg.MaterializeResult:
-    receita_mensal_pre2505 = [
-        f
-        for f in fs.glob("pjf_receita_mensal_comparativa", "*.xls")
-        if int(f.name.split(".")[0]) < 2505
-    ]
-
-    receita_mensal_2505 = [
-        f
-        for f in fs.glob("pjf_receita_mensal_comparativa", "*.xls")
-        if int(f.name.split(".")[0]) >= 2505
-    ]
-
-    df = pd.concat(
-        [read_receita_comparativa_pre2505(r) for r in receita_mensal_pre2505]
-        + [read_receita_comparativa_2505(r) for r in receita_mensal_2505]
-    )
+    if int(filepath.stem) < 2505:
+        df = read_receita_comparativa_pre2505(filepath)
+    if int(filepath.stem) >= 2505:
+        df = read_receita_comparativa_2505(filepath)
 
     write_df_to_duckdb(
         duckdb=duckdb,
@@ -213,10 +174,5 @@ def stg_receita_mensal_comparativa(
 @definitions
 def defs():
     return dg.Definitions(
-        assets=[
-            receita_mensal_prevista,
-            receita_mensal_comparativa,
-            stg_receita_mensal_prevista,
-            stg_receita_mensal_comparativa,
-        ]
+        assets=[receita_mensal_prevista, receita_mensal_comparativa]
     )

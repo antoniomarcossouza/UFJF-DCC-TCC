@@ -20,3 +20,6 @@ models:
       pjf:
         +schema: stg
         +materialized: view
+        +meta:
+          dagster:
+            group: "pjf"
