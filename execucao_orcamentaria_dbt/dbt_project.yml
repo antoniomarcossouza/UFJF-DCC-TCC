@@ -16,4 +16,7 @@ clean-targets:
 
 models:
   execucao_orcamentaria_dbt:
-    +materialized: view
+    staging:
+      pjf:
+        +schema: stg
+        +materialized: view

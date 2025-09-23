@@ -1,7 +1,8 @@
 __pycache__/
 .tmp_dagster_*/
+.venv/
 
-*.duckdb
+*.duckdb*
 *.xls
 
 target/
