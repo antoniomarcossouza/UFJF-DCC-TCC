@@ -10,15 +10,19 @@ dependencies = [
     "dbt-core>=1.10.8",
     "dbt-duckdb>=1.9.6",
     "duckdb>=1.3.2",
-    "ipykernel[dev]>=6.30.1",
     "pandas>=2.3.2",
-    "pip[dev]>=25.2",
     "requests>=2.32.5",
     "xlrd>=2.0.2",
 ]
 
 [project.optional-dependencies]
-dev = ["ruff>=0.12.10", "sqlfluff>=3.4.2"]
+dev = [
+    "ipykernel>=6.30.1",
+    "pip>=25.2",
+    "ruff>=0.12.10",
+    "sqlfluff>=3.4.2",
+    "sqlfluff-templater-dbt>=3.4.2",
+]
 
 # Dagster
 [tool.dg]
@@ -29,9 +33,45 @@ root_module = "execucao_orcamentaria"
 registry_modules = ["execucao_orcamentaria.lib.*"]
 
 # Ruff
-
 [tool.ruff]
 line-length = 79
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "A", "I", "B", "PLC", "PLE", "PLW", "ERA"]
+
+# SQLFluff
+[tool.sqlfluff.core]
+templater = "dbt"
+dialect = "duckdb"
+exclude_rules = [
+    "ambiguous.column_count",
+    "structure.column_order",
+    "structure.using",
+    "references.qualification",
+]
+max_line_length = 100
+nocolor = true
+warnings = "RF04"
+large_file_skip_byte_limit = 35000
+
+[tool.sqlfluff.templater.dbt]
+project_dir = "./execucao_orcamentaria_dbt"
+profiles_dir = "./execucao_orcamentaria_dbt"
+
+[tool.sqlfluff.indentation]
+tab_space_size = 4
+
+[tool.sqlfluff.rules.capitalisation.keywords]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.identifiers]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.functions]
+extended_capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.literals]
+capitalisation_policy = "lower"
+
+[tool.sqlfluff.rules.capitalisation.types]
+extended_capitalisation_policy = "lower"
