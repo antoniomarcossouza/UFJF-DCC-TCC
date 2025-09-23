@@ -39,7 +39,6 @@ def get_dbt_non_partitioned_models(
             dbt.cli(["build"], context=context)
             .stream()
             .fetch_column_metadata()
-            .with_insights()
         )
 
     return dbt_non_partitioned_models
