@@ -1,4 +1,3 @@
-from datetime import datetime
 from pathlib import Path
 
 import dagster as dg
@@ -9,6 +8,7 @@ from dagster.components import definitions
 from dagster_duckdb import DuckDBResource
 
 from execucao_orcamentaria.defs.filesystem.resources import LocalFSResource
+from execucao_orcamentaria.defs.pjf.partitions import year_month_partition
 from execucao_orcamentaria.utils.duckdb import write_df_to_duckdb
 
 
@@ -45,15 +45,8 @@ def read_despesa_mensal(filepath: Path):
     return df
 
 
-despesa_mensal_consolidada_partition = dg.TimeWindowPartitionsDefinition(
-    start=datetime(2020, 1, 1),
-    cron_schedule="0 0 1 * *",
-    fmt="%y%m",
-)
-
-
 @dg.asset(
-    partitions_def=despesa_mensal_consolidada_partition,
+    partitions_def=year_month_partition,
     kinds={"python", "excel"},
     group_name="pjf",
 )
