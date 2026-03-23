@@ -12,7 +12,7 @@ class LocalFSResource(dg.ConfigurableResource):
         content: bytes,
         directory: str,
         filename: str,
-    ) -> None:
+    ) -> Path:
         """Salva bytes no filesystem local."""
         filepath = Path(self.base_path) / directory / filename
         filepath.parent.mkdir(exist_ok=True, parents=True)

@@ -57,24 +57,31 @@ def despesa_mensal_consolidada(
 ) -> dg.MaterializeResult:
     year_month = context.partition_key
 
-    url = f"https://www.pjf.mg.gov.br/transparencia/despesas_publicas/mensal_consolidada/arquivos/xls/{year_month}.xls"
-    content = fetch_xls(url)
+    base_url = "https://www.pjf.mg.gov.br/transparencia/despesas_publicas/mensal_consolidada/arquivos/xls"
+    filename = f"{year_month}.xls"
+    url = f"{base_url}/{filename}"
 
-    fs.save_bytes(
+    try:
+        content = fetch_xls(url)
+    except requests.exceptions.HTTPError:
+        filename = f"{year_month}.xlsx"
+        url = f"{base_url}/{filename}"
+        content = fetch_xls(url)
+
+    dir_name = "pjf_despesa_mensal_consolidada"
+
+    filepath = fs.save_bytes(
         content=content,
-        directory="pjf_despesa_mensal_consolidada",
-        filename=url.split("/")[-1],
+        directory=dir_name,
+        filename=filename,
     )
-
-    filepath = fs.glob("pjf_despesa_mensal_consolidada", "*.xls")
-
     df = read_despesa_mensal(filepath)
 
     write_df_to_duckdb(
         duckdb=duckdb,
         _df=df,
         schema="stg",
-        table="pjf_despesa_mensal_consolidada",
+        table=dir_name,
     )
 
     return dg.MaterializeResult()

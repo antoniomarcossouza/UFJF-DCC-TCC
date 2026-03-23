@@ -148,12 +148,21 @@ def receita_mensal_comparativa(
 ) -> dg.MaterializeResult:
     year_month = context.partition_key
 
-    url = f"https://www.pjf.mg.gov.br/transparencia/receitas/mensal/comparativo/arquivos/xls/{year_month}.xls"
-    content = fetch_xls(url)
+    base_url = "https://www.pjf.mg.gov.br/transparencia/receitas/mensal/comparativo/arquivos/xls"
+    filename = f"{year_month}.xls"
+    url = f"{base_url}/{filename}"
 
+    try:
+        content = fetch_xls(url)
+    except requests.exceptions.HTTPError:
+        filename = f"{year_month}.xlsx"
+        url = f"{base_url}/{filename}"
+        content = fetch_xls(url)
+
+    dir_name = "pjf_receita_mensal_comparativa"
     filepath = fs.save_bytes(
         content=content,
-        directory="pjf_receita_mensal_comparativa",
+        directory=dir_name,
         filename=url.split("/")[-1],
     )
     if int(filepath.stem) < 2505:
@@ -165,7 +174,7 @@ def receita_mensal_comparativa(
         duckdb=duckdb,
         _df=df,
         schema="stg",
-        table="pjf_receita_mensal_comparativa",
+        table=dir_name,
     )
 
     return dg.MaterializeResult()

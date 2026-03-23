@@ -1,9 +1,11 @@
 __pycache__/
 .tmp_dagster_*/
 .venv/
+.vscode/
 
 *.duckdb*
 *.xls
+*.xlsx
 
 target/
 dbt_packages/
