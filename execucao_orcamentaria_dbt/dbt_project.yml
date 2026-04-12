@@ -23,3 +23,10 @@ models:
         +meta:
           dagster:
             group: "pjf"
+    warehouse:
+      pjf:
+        +schema: dwh
+        +materialized: table
+        +meta:
+          dagster:
+            group: "pjf"
