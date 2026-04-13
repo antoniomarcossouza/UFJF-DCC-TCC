@@ -7,7 +7,7 @@ Empenho" as ds_modalidade_empenho,
 Legal" as ds_referencia_legal,
 	"Processo" as cd_processo,
 	"Descrição" as ds_empenho
-from {{ref('stg_pjf_despesa_mensal_consolidada')}};
+from {{ref('stg_pjf_despesa_mensal_consolidada')}}
 
 
 /*

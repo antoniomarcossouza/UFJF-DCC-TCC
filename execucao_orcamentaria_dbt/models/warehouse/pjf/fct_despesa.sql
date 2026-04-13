@@ -3,17 +3,14 @@ select
 	"Data do Empenho" as dt_empenho, -- SK_TEMPO_EMPENHO
 	"Data da Liquidação" as dt_liquidacao, -- SK_TEMPO_LIQUIDACAO
     {{ dbt_utils.generate_surrogate_key(['"CPF/CNPJ"']) }} as sk_fornecedor,
-	"Funcional Programática" as nu_funcional_progragmatica, -- DIM_CLASSIFICACAO_ORCAMENTARIA
-	"Descrição da Ação", -- DIM_CLASSIFICACAO_ORCAMENTARIA
-	"Natureza
-de Despesa" as cd_natureza_despesa, -- DIM_CLASSIFICACAO_ORCAMENTARIA
-	"Descrição Natureza de Despesa" as ds_natureza_despesa, -- DIM_CLASSIFICACAO_ORCAMENTARIA
-	"Fonte" as cd_fonte, -- DIM_CLASSIFICACAO_ORCAMENTARIA
-	"Descrição da Fonte" as ds_fonte, -- DIM_CLASSIFICACAO_ORCAMENTARIA
+    {{ dbt_utils.generate_surrogate_key(['"Funcional Programática"']) }} as sk_funcional_pragmatica,
+	{{ dbt_utils.generate_surrogate_key(['"Natureza
+de Despesa"']) }} as sk_natureza_despesa,
+    {{ dbt_utils.generate_surrogate_key(['"Fonte"']) }} as sk_fonte_recurso,
 	"Vr.Empenhado
 No Mês" as vl_empenhado_mes,
 	"Vr. Liquidado
 No Mês" as vl_liquidado_mes,
 	"Vr. Pago
 No Mês" as vl_pago_mes
-from execucao_orcamentaria.stg.stg_pjf_despesa_mensal_consolidada;
+from {{ref('stg_pjf_despesa_mensal_consolidada')}}

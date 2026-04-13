@@ -121,7 +121,7 @@ def receita_mensal_prevista(
     filepath = fs.save_bytes(
         content=content,
         directory="pjf_receita_mensal_prevista",
-        filename=url.split("/")[-1],
+        filename=url.rsplit("/", maxsplit=1)[-1],
     )
 
     df = read_receita_prevista(filepath)
