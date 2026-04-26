@@ -11,7 +11,7 @@ dates_raw as (
 days_info as (
     select
         cast(date_day as date) as date_day,
-        {{ dbt_utils.generate_surrogate_key(["strftime(date_day, '%Y-%m-%d')"]) }} as sk_tempo,
+        {{ sk_tempo_dia_data_expr("date_day") }} as sk_tempo,
         cast(date_part('isodow', date_day) as int) as nu_dia_semana,
         cast(extract(month from date_day) as int) as nu_mes,
         cast(extract(quarter from date_day) as int) as nu_trimestre,

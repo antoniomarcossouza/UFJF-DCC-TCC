@@ -15,6 +15,9 @@ models:
         data_tests:
           - not_null
           - unique
+      - name: nm_unidade_administrativa
+        data_tests:
+          - not_null
 
   - name: dim_fornecedor
     columns:
@@ -22,6 +25,9 @@ models:
         data_tests:
           - not_null
           - unique
+      - name: cd_cpf_cnpj
+        data_tests:
+          - not_null
 
   - name: dim_funcional_pragmatica
     columns:
@@ -29,6 +35,9 @@ models:
         data_tests:
           - not_null
           - unique
+      - name: cd_funcional_pragmatica
+        data_tests:
+          - not_null
 
   - name: dim_natureza_despeza
     columns:
@@ -36,6 +45,9 @@ models:
         data_tests:
           - not_null
           - unique
+      - name: cd_natureza_despesa
+        data_tests:
+          - not_null
 
   - name: dim_fonte_recurso
     columns:
@@ -43,8 +55,26 @@ models:
         data_tests:
           - not_null
           - unique
+      - name: cd_fonte_recurso
+        data_tests:
+          - not_null
 
   - name: fct_despesa
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_empenho
+              - sk_unidade_administrativa
+              - sk_fornecedor
+              - sk_funcional_pragmatica
+              - sk_natureza_despesa
+              - sk_fonte_recurso
+              - sk_tempo_empenho
+              - sk_tempo_liquidacao
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "vl_empenhado_mes >= 0 and vl_liquidado_mes >= 0 and vl_pago_mes >= 0"
     columns:
       - name: sk_empenho
         data_tests:
@@ -100,6 +130,15 @@ models:
               arguments:
                 to: ref('dim_tempo')
                 field: sk_tempo
+      - name: vl_empenhado_mes
+        data_tests:
+          - not_null
+      - name: vl_liquidado_mes
+        data_tests:
+          - not_null
+      - name: vl_pago_mes
+        data_tests:
+          - not_null
 
   - name: fct_receita
     data_tests:
@@ -108,13 +147,14 @@ models:
             combination_of_columns:
               - sk_natureza_receita
               - sk_tempo_referencia
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "vl_arrecadada_mes is not null and vl_previsto_mensal is not null"
     columns:
       - name: sk_natureza_receita
         data_tests:
           - not_null
           - relationships:
-              config:
-                severity: warn
               arguments:
                 to: ref('dim_natureza_receita')
                 field: sk_natureza_receita
@@ -125,6 +165,8 @@ models:
               arguments:
                 to: ref('dim_tempo')
                 field: sk_tempo
+      - name: vl_previsto_mensal
+      - name: vl_arrecadada_mes
 
   - name: fct_receita_acumulada
     data_tests:
@@ -133,13 +175,14 @@ models:
             combination_of_columns:
               - sk_natureza_receita
               - sk_tempo_referencia
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "vl_previsao_inicial_comparativa is not null and vl_previsao_atualizada is not null and vl_arrecadada_ano is not null and vl_a_realizar is not null"
     columns:
       - name: sk_natureza_receita
         data_tests:
           - not_null
           - relationships:
-              config:
-                severity: warn
               arguments:
                 to: ref('dim_natureza_receita')
                 field: sk_natureza_receita
@@ -150,3 +193,15 @@ models:
               arguments:
                 to: ref('dim_tempo')
                 field: sk_tempo
+      - name: vl_previsao_inicial_comparativa
+        data_tests:
+          - not_null
+      - name: vl_previsao_atualizada
+        data_tests:
+          - not_null
+      - name: vl_arrecadada_ano
+        data_tests:
+          - not_null
+      - name: vl_a_realizar
+        data_tests:
+          - not_null

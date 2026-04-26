@@ -6,14 +6,47 @@ sources:
     schema: stg
     tables:
       - name: pjf_despesa_mensal_consolidada
+        loaded_at_field: dt_atualizacao
+        freshness:
+          warn_after: {count: 45, period: day}
+          error_after: {count: 60, period: day}
+        columns:
+          - name: nm_arquivo
+            data_tests:
+              - not_null
+          - name: dt_atualizacao
+            data_tests:
+              - not_null
         meta:
           dagster:
             asset_key: ["despesa_mensal_consolidada"]
       - name: pjf_receita_mensal_comparativa
+        loaded_at_field: dt_atualizacao
+        freshness:
+          warn_after: {count: 45, period: day}
+          error_after: {count: 60, period: day}
+        columns:
+          - name: nm_arquivo
+            data_tests:
+              - not_null
+          - name: dt_atualizacao
+            data_tests:
+              - not_null
         meta:
           dagster:
             asset_key: ["receita_mensal_comparativa"]
       - name: pjf_receita_mensal_prevista
+        loaded_at_field: dt_atualizacao
+        freshness:
+          warn_after: {count: 45, period: day}
+          error_after: {count: 60, period: day}
+        columns:
+          - name: nm_arquivo
+            data_tests:
+              - not_null
+          - name: dt_atualizacao
+            data_tests:
+              - not_null
         meta:
           dagster:
             asset_key: ["receita_mensal_prevista"]

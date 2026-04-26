@@ -6,6 +6,17 @@ sources:
     schema: stg
     tables:
       - name: stn_ementario_natureza_receita
+        loaded_at_field: dt_atualizacao
+        freshness:
+          warn_after: {count: 45, period: day}
+          error_after: {count: 60, period: day}
+        columns:
+          - name: nm_arquivo
+            data_tests:
+              - not_null
+          - name: dt_atualizacao
+            data_tests:
+              - not_null
         meta:
           dagster:
             asset_key: ["stn_ementario_natureza_receita"]

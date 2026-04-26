@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: stg_pjf_despesa_mensal_consolidada
+    columns:
+      - name: nm_arquivo
+        data_tests:
+          - not_null
+      - name: dt_atualizacao
+        data_tests:
+          - not_null
+
+  - name: stg_pjf_receita_mensal_prevista
+    columns:
+      - name: nm_arquivo
+        data_tests:
+          - not_null
+      - name: dt_atualizacao
+        data_tests:
+          - not_null
+
+  - name: stg_pjf_receita_mensal_comparativa
+    columns:
+      - name: nm_arquivo
+        data_tests:
+          - not_null
+      - name: dt_atualizacao
+        data_tests:
+          - not_null

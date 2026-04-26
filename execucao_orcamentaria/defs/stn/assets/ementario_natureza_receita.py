@@ -80,6 +80,20 @@ def read_ementario_natureza_receita(
     # Layout padrao STN: header na segunda linha.
     header_idx = 1
 
+    raw = pd.read_excel(
+        filepath, sheet_name=sheet_name, header=None, dtype=str
+    ).fillna("")
+    for idx in range(len(raw.index)):
+        row_values = [normalize_col_name(v) for v in raw.iloc[idx].tolist()]
+        has_nr = any(v == "nr" for v in row_values)
+        has_desc = any(
+            "especific" in v or "descricao" in v or "ementa" in v
+            for v in row_values
+        )
+        if has_nr and has_desc:
+            header_idx = idx
+            break
+
     df = pd.read_excel(
         filepath,
         sheet_name=sheet_name,
@@ -87,88 +101,11 @@ def read_ementario_natureza_receita(
         dtype=str,
     )
     df.columns = [str(c).strip() for c in df.columns]
-    norm_cols = [normalize_col_name(c) for c in df.columns]
-
-    code_col = next(
-        (
-            df.columns[i]
-            for i, c in enumerate(norm_cols)
-            if c == "nr" or "codigo" in c or "natureza" in c
-        ),
-        None,
-    )
-    desc_col = next(
-        (
-            df.columns[i]
-            for i, c in enumerate(norm_cols)
-            if "especific" in c or "descricao" in c or "ementa" in c
-        ),
-        None,
-    )
-
-    if code_col is None or desc_col is None:
-        raw = pd.read_excel(
-            filepath, sheet_name=sheet_name, header=None, dtype=str
-        ).fillna("")
-        for idx in range(len(raw.index)):
-            row_values = [
-                normalize_col_name(v) for v in raw.iloc[idx].tolist()
-            ]
-            has_code = any(
-                v == "nr" or "codigo" in v or "natureza" in v
-                for v in row_values
-            )
-            has_desc = any(
-                "especific" in v or "descricao" in v or "ementa" in v
-                for v in row_values
-            )
-            if has_code and has_desc:
-                header_idx = idx
-                break
-
-        df = pd.read_excel(
-            filepath,
-            sheet_name=sheet_name,
-            skiprows=header_idx,
-            dtype=str,
-        )
-        df.columns = [str(c).strip() for c in df.columns]
-        norm_cols = [normalize_col_name(c) for c in df.columns]
-        code_col = next(
-            (
-                df.columns[i]
-                for i, c in enumerate(norm_cols)
-                if c == "nr" or "codigo" in c or "natureza" in c
-            ),
-            None,
-        )
-        desc_col = next(
-            (
-                df.columns[i]
-                for i, c in enumerate(norm_cols)
-                if "especific" in c or "descricao" in c or "ementa" in c
-            ),
-            None,
-        )
-
-    if code_col is None or desc_col is None:
-        raise ValueError(
-            "Colunas de codigo/descricao nao encontradas no ementario."
-        )
-
-    out = pd.DataFrame()
-    out["cd_natureza_receita"] = (
-        df[code_col].astype(str).str.replace(r"\D", "", regex=True).str.strip()
-    )
-    out["ds_natureza_receita"] = df[desc_col].astype(str).str.strip()
-    out = out[
-        (out["cd_natureza_receita"] != "")
-        & (out["cd_natureza_receita"].str.lower() != "nan")
-    ]
-    out["nu_ano_referencia"] = year
-    out["nm_arquivo"] = filepath.name
-    out["dt_atualizacao"] = pd.Timestamp.utcnow()
-    return out
+    df = df.dropna(how="all")
+    df["nu_ano_referencia"] = year
+    df["nm_arquivo"] = filepath.name
+    df["dt_atualizacao"] = pd.Timestamp.utcnow()
+    return df
 
 
 @dg.asset(

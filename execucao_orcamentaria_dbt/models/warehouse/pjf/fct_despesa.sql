@@ -1,9 +1,3 @@
-{%- set sk_tempo_empenho_col %}
-strftime(try_cast("Data do Empenho" as date), '%Y-%m-%d')
-{%- endset %}
-{%- set sk_tempo_liq_col %}
-strftime(try_cast("Data da Liquidação" as date), '%Y-%m-%d')
-{%- endset %}
 with
 marked as (
     select
@@ -17,12 +11,12 @@ marked as (
         case
             when try_cast("Data do Empenho" as date) is not null
                 then
-                    {{ dbt_utils.generate_surrogate_key([sk_tempo_empenho_col | trim]) }}
+                    {{ sk_tempo_dia_data_expr('try_cast("Data do Empenho" as date)') }}
         end as sk_tempo_empenho,
         case
             when try_cast("Data da Liquidação" as date) is not null
                 then
-                    {{ dbt_utils.generate_surrogate_key([sk_tempo_liq_col | trim]) }}
+                    {{ sk_tempo_dia_data_expr('try_cast("Data da Liquidação" as date)') }}
         end as sk_tempo_liquidacao,
         {{ dbt_utils.generate_surrogate_key(['"CPF/CNPJ"']) }} as sk_fornecedor,
 
@@ -31,12 +25,12 @@ marked as (
         {{ dbt_utils.generate_surrogate_key(['"Natureza
 de Despesa"']) }} as sk_natureza_despesa,
         {{ dbt_utils.generate_surrogate_key(['"Fonte"']) }} as sk_fonte_recurso,
-        "Vr.Empenhado
-No Mês" as vl_empenhado_mes,
-        "Vr. Liquidado
-No Mês" as vl_liquidado_mes,
-        "Vr. Pago
-No Mês" as vl_pago_mes
+        cast("Vr.Empenhado
+No Mês" as numeric(18, 2)) as vl_empenhado_mes,
+        cast("Vr. Liquidado
+No Mês" as numeric(18, 2)) as vl_liquidado_mes,
+        cast("Vr. Pago
+No Mês" as numeric(18, 2)) as vl_pago_mes
     from {{ ref('stg_pjf_despesa_mensal_consolidada') }}
 )
 

@@ -19,9 +19,11 @@ keyed as (
         {{ dbt_utils.generate_surrogate_key(['cd_natureza_receita']) }} as sk_natureza_receita,
         vl_arrecadada_mes,
         cd_natureza_receita,
-        {{ dbt_utils.generate_surrogate_key(
-            ["strftime(make_date(nu_ano_referencia, nu_mes_referencia, 1), '%Y-%m-%d')"]
-        ) }} as sk_tempo_referencia,
+        {{
+            sk_tempo_dia_data_expr(
+                "make_date(nu_ano_referencia, nu_mes_referencia, 1)"
+            )
+        }} as sk_tempo_referencia,
         vl_previsao_inicial_comparativa,
         vl_previsao_atualizada,
         vl_arrecadada_ano,

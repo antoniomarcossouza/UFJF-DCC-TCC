@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: stg_stn_ementario_natureza_receita
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - cd_natureza_receita
+              - nu_ano_referencia
+              - ds_natureza_receita
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "length(cd_natureza_receita) <= 8"
+    columns:
+      - name: cd_natureza_receita
+        data_tests:
+          - not_null
+      - name: ds_natureza_receita
+        data_tests:
+          - not_null
+      - name: nu_ano_referencia
+        data_tests:
+          - not_null
