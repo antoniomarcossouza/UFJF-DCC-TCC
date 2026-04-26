@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: staging
+    database: execucao_orcamentaria
+    schema: stg
+    tables:
+      - name: stn_ementario_natureza_receita
+        meta:
+          dagster:
+            asset_key: ["stn_ementario_natureza_receita"]

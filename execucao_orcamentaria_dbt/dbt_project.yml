@@ -3,12 +3,12 @@ version: "1.0.0"
 
 profile: "execucao_orcamentaria_dbt"
 
-model-paths: ["models"]
-analysis-paths: ["analyses"]
-test-paths: ["tests"]
-seed-paths: ["seeds"]
-macro-paths: ["macros"]
-snapshot-paths: ["snapshots"]
+model-paths: [ "models" ]
+analysis-paths: [ "analyses" ]
+test-paths: [ "tests" ]
+seed-paths: [ "seeds" ]
+macro-paths: [ "macros" ]
+snapshot-paths: [ "snapshots" ]
 
 clean-targets:
   - "target"
@@ -23,6 +23,12 @@ models:
         +meta:
           dagster:
             group: "pjf"
+      stn:
+        +schema: stg
+        +materialized: view
+        +meta:
+          dagster:
+            group: "stn"
     warehouse:
       pjf:
         +schema: dwh
@@ -30,3 +36,9 @@ models:
         +meta:
           dagster:
             group: "pjf"
+      stn:
+        +schema: dwh
+        +materialized: table
+        +meta:
+          dagster:
+            group: "stn"
