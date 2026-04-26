@@ -48,7 +48,7 @@ def read_despesa_mensal(filepath: Path):
 @dg.asset(
     partitions_def=year_month_partition,
     kinds={"excel", "pandas", "duckdb"},
-    group_name="pjf",
+    group_name="raw",
 )
 def despesa_mensal_consolidada(
     context: dg.AssetExecutionContext,

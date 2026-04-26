@@ -22,23 +22,29 @@ models:
         +materialized: view
         +meta:
           dagster:
-            group: "pjf"
+            group: "stg"
       stn:
         +schema: stg
         +materialized: view
         +meta:
           dagster:
-            group: "stn"
+            group: "stg"
     warehouse:
+      general:
+        +schema: dwh
+        +materialized: table
+        +meta:
+          dagster:
+            group: "dwh"
       pjf:
         +schema: dwh
         +materialized: table
         +meta:
           dagster:
-            group: "pjf"
+            group: "dwh"
       stn:
         +schema: dwh
         +materialized: table
         +meta:
           dagster:
-            group: "stn"
+            group: "dwh"

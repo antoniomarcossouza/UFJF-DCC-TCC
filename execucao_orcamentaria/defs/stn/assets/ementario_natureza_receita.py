@@ -174,7 +174,7 @@ def read_ementario_natureza_receita(
 @dg.asset(
     partitions_def=year_partition_stn,
     kinds={"html", "excel", "pandas", "duckdb"},
-    group_name="stn",
+    group_name="raw",
 )
 def stn_ementario_natureza_receita(
     context: dg.AssetExecutionContext,

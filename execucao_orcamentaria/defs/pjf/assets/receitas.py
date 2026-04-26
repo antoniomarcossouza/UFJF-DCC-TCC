@@ -101,7 +101,7 @@ def read_receita_prevista(filepath: Path):
 @dg.asset(
     partitions_def=year_partition,
     kinds={"excel", "pandas", "duckdb"},
-    group_name="pjf",
+    group_name="raw",
 )
 def receita_mensal_prevista(
     context: dg.AssetExecutionContext,
@@ -139,7 +139,7 @@ def receita_mensal_prevista(
 @dg.asset(
     partitions_def=year_month_partition,
     kinds={"excel", "pandas", "duckdb"},
-    group_name="pjf",
+    group_name="raw",
 )
 def receita_mensal_comparativa(
     context: dg.AssetExecutionContext,

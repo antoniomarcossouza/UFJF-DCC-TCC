@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: dim_empenho
+    description: "Empenho no consolidado mensal; sk_empenho = h(nu_nota_empenho + cd_processo + ds_empenho). DISTINCT ON (sk_empenho) escolhe uma linha por chave (ORDER BY define qual)."
+    columns:
+      - name: sk_empenho
+        data_tests:
+          - not_null
+          - unique
+
+  - name: fct_despesa
+    columns:
+      - name: sk_empenho
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_empenho')
+                field: sk_empenho

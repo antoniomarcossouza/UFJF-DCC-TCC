@@ -3,4 +3,4 @@ execucao_orcamentaria_dbt:
   outputs:
     dev:
       type: duckdb
-      path: "../data/execucao_orcamentaria.duckdb"
+      path: "{{ env_var('DUCKDB_PATH', 'data/execucao_orcamentaria.duckdb') }}"
