@@ -3,4 +3,4 @@ execucao_orcamentaria_dbt:
   outputs:
     dev:
       type: duckdb
-      path: "../data/execucao_orcamentaria.duckdb"
+      path: "data/execucao_orcamentaria.duckdb"
