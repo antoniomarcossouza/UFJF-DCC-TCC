@@ -2770,7 +2770,6 @@ name = "ufjf-tcc"
 version = "0.0.1"
 source = { virtual = "." }
 dependencies = [
-    { name = "chardet" },
     { name = "dagster" },
     { name = "dagster-dbt" },
     { name = "dagster-dg-cli" },
@@ -2787,6 +2786,7 @@ dependencies = [
 
 [package.optional-dependencies]
 dev = [
+    { name = "chardet" },
     { name = "ipykernel" },
     { name = "pip" },
     { name = "ruff" },
@@ -2796,7 +2796,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "chardet", specifier = ">=3.0.2,<6" },
+    { name = "chardet", marker = "extra == 'dev'", specifier = ">=3.0.2,<6" },
     { name = "dagster", specifier = ">=1.11.7" },
     { name = "dagster-dbt", specifier = ">=0.27.7" },
     { name = "dagster-dg-cli", specifier = ">=1.11.7" },

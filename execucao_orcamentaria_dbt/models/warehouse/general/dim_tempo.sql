@@ -2,7 +2,7 @@ with
 dates_raw as (
         {{ dbt_utils.date_spine(
         datepart="day",
-        start_date="cast('2018-01-01' as date)",
+        start_date="cast('2014-01-01' as date)",
         end_date="date_add(current_date(), interval 1 year)"
         )
     }}
@@ -11,7 +11,7 @@ dates_raw as (
 days_info as (
     select
         cast(date_day as date) as date_day,
-        {{ dbt_utils.generate_surrogate_key(['cast(date_day as varchar)']) }} as sk_tempo,
+        {{ dbt_utils.generate_surrogate_key(["strftime(date_day, '%Y-%m-%d')"]) }} as sk_tempo,
         cast(date_part('isodow', date_day) as int) as nu_dia_semana,
         cast(extract(month from date_day) as int) as nu_mes,
         cast(extract(quarter from date_day) as int) as nu_trimestre,

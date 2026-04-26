@@ -2,25 +2,42 @@
 
 with base as (
     select
-        cast("Arrecadada Mês" as numeric(18,2)) as vl_arrecadada_mes,
-        regexp_replace(replace("Natureza", '.0', ''), '[^0-9]', '', 'g') as cd_natureza_receita,
+        cast(vl_arrecadada_mes as numeric(18, 2)) as vl_arrecadada_mes,
+        regexp_replace(replace(natureza, '.0', ''), '[^0-9]', '', 'g') as cd_natureza_receita,
         2000 + cast(left(split_part(lower(nm_arquivo), '.', 1), 2) as int) as nu_ano_referencia,
         cast(right(split_part(lower(nm_arquivo), '.', 1), 2) as int) as nu_mes_referencia,
-        cast("Previsão Inicial" as numeric(18,2)) as vl_previsao_inicial_comparativa,
-        cast("Previsão Atualizada" as numeric(18,2)) as vl_previsao_atualizada,
-        cast("Arrecadada Ano" as numeric(18,2)) as vl_arrecadada_ano,
-        cast("A Realizar" as numeric(18,2)) as vl_a_realizar
+        cast(vl_previsao_inicial as numeric(18, 2)) as vl_previsao_inicial_comparativa,
+        cast(vl_previsao_atualizada as numeric(18, 2)) as vl_previsao_atualizada,
+        cast(vl_arrecadada_ano as numeric(18, 2)) as vl_arrecadada_ano,
+        cast(vl_a_realizar as numeric(18, 2)) as vl_a_realizar
     from {{ ref('stg_pjf_receita_mensal_comparativa') }}
-    where "Natureza" <> 'TOTAIS GERAIS'
+    where natureza <> 'TOTAIS GERAIS'
+),
+
+keyed as (
+    select
+        {{ dbt_utils.generate_surrogate_key(['cd_natureza_receita']) }} as sk_natureza_receita,
+        vl_arrecadada_mes,
+        cd_natureza_receita,
+        {{ dbt_utils.generate_surrogate_key(
+            ["strftime(make_date(nu_ano_referencia, nu_mes_referencia, 1), '%Y-%m-%d')"]
+        ) }} as sk_tempo_referencia,
+        vl_previsao_inicial_comparativa,
+        vl_previsao_atualizada,
+        vl_arrecadada_ano,
+        vl_a_realizar
+    from base
 )
+
 select
-    {{ dbt_utils.generate_surrogate_key(['cd_natureza_receita']) }} as sk_natureza_receita,
-    vl_arrecadada_mes,
-    cd_natureza_receita,
-    nu_ano_referencia,
-    nu_mes_referencia,
-    vl_previsao_inicial_comparativa,
-    vl_previsao_atualizada,
-    vl_arrecadada_ano,
-    vl_a_realizar
-from base
+    k.sk_natureza_receita,
+    k.vl_arrecadada_mes,
+    k.cd_natureza_receita,
+    k.sk_tempo_referencia,
+    k.vl_previsao_inicial_comparativa,
+    k.vl_previsao_atualizada,
+    k.vl_arrecadada_ano,
+    k.vl_a_realizar
+from keyed as k
+inner join {{ ref('dim_tempo') }} as t
+    on k.sk_tempo_referencia = t.sk_tempo

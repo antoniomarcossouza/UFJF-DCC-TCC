@@ -1,7 +1,7 @@
 with source as (
     select * from {{ source('staging', 'pjf_receita_mensal_comparativa') }}
-    where "Natureza" <> 'TOTAIS GERAIS'
-    
+    where natureza <> 'TOTAIS GERAIS'
+
 ),
 
 dedup as (
@@ -11,13 +11,13 @@ dedup as (
 )
 
 select
-    "Natureza", 
-    sum("Previsão Inicial") as "Previsão Inicial", 
-    sum("Previsão Atualizada") as "Previsão Atualizada", 
-    sum("Arrecadada Mês") as "Arrecadada Mês", 
-    sum("Arrecadada Ano") as "Arrecadada Ano", 
-    sum("A Realizar") as "A Realizar", 
-    nm_arquivo, 
+    natureza,
+    sum("Previsão Inicial") as vl_previsao_inicial,
+    sum("Previsão Atualizada") as vl_previsao_atualizada,
+    sum("Arrecadada Mês") as vl_arrecadada_mes,
+    sum("Arrecadada Ano") as vl_arrecadada_ano,
+    sum("A Realizar") as vl_a_realizar,
+    nm_arquivo,
     dt_atualizacao
 from dedup
-group by "Natureza", nm_arquivo, dt_atualizacao
+group by natureza, nm_arquivo, dt_atualizacao

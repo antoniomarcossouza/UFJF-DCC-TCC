@@ -9,6 +9,41 @@ models:
           - not_null
           - unique
 
+  - name: dim_unidade_administrativa
+    columns:
+      - name: sk_unidade_administrativa
+        data_tests:
+          - not_null
+          - unique
+
+  - name: dim_fornecedor
+    columns:
+      - name: sk_fornecedor
+        data_tests:
+          - not_null
+          - unique
+
+  - name: dim_funcional_pragmatica
+    columns:
+      - name: sk_funcional_pragmatica
+        data_tests:
+          - not_null
+          - unique
+
+  - name: dim_natureza_despeza
+    columns:
+      - name: sk_natureza_despesa
+        data_tests:
+          - not_null
+          - unique
+
+  - name: dim_fonte_recurso
+    columns:
+      - name: sk_fonte_recurso
+        data_tests:
+          - not_null
+          - unique
+
   - name: fct_despesa
     columns:
       - name: sk_empenho
@@ -18,3 +53,88 @@ models:
               arguments:
                 to: ref('dim_empenho')
                 field: sk_empenho
+      - name: sk_unidade_administrativa
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_unidade_administrativa')
+                field: sk_unidade_administrativa
+      - name: sk_fornecedor
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fornecedor')
+                field: sk_fornecedor
+      - name: sk_funcional_pragmatica
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_funcional_pragmatica')
+                field: sk_funcional_pragmatica
+      - name: sk_natureza_despesa
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_natureza_despeza')
+                field: sk_natureza_despesa
+      - name: sk_fonte_recurso
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fonte_recurso')
+                field: sk_fonte_recurso
+      - name: sk_tempo_empenho
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_tempo')
+                field: sk_tempo
+      - name: sk_tempo_liquidacao
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_tempo')
+                field: sk_tempo
+
+  - name: fct_receita
+    columns:
+      - name: sk_natureza_receita
+        data_tests:
+          - not_null
+          - relationships:
+              config:
+                severity: warn
+              arguments:
+                to: ref('dim_natureza_receita')
+                field: sk_natureza_receita
+      - name: sk_tempo_referencia
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tempo')
+                field: sk_tempo
+
+  - name: fct_receita_acumulada
+    columns:
+      - name: sk_natureza_receita
+        data_tests:
+          - not_null
+          - relationships:
+              config:
+                severity: warn
+              arguments:
+                to: ref('dim_natureza_receita')
+                field: sk_natureza_receita
+      - name: sk_tempo_referencia
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tempo')
+                field: sk_tempo

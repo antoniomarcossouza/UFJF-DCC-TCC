@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: dim_natureza_receita
+    description: "Natureza de receita (ementário STN), 1 linha por cd; sk_tempo_ementa = primeiro dia do ano de referência do ementário."
+    columns:
+      - name: sk_natureza_receita
+        data_tests:
+          - not_null
+          - unique
+      - name: sk_tempo_ementa
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tempo')
+                field: sk_tempo
