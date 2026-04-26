@@ -37,18 +37,36 @@ pjf_references as (
     group by u.cd_natureza_receita
 ),
 
+pjf_natureza_texto as (
+    select
+        cd_natureza_receita,
+        ds_natureza_receita
+    from {{ ref('int_pjf_receita_comparativa') }}
+    where
+        cd_natureza_receita is not null
+        and cd_natureza_receita <> ''
+        and ds_natureza_receita is not null
+        and ds_natureza_receita <> ''
+    qualify row_number() over (
+        partition by cd_natureza_receita
+        order by length(ds_natureza_receita) desc
+    ) = 1
+),
+
 pjf_only as (
     select
         {{ dbt_utils.generate_surrogate_key(['p.cd_natureza_receita']) }}
             as sk_natureza_receita,
         p.cd_natureza_receita,
-        'Sem ementa STN (origem PJF)' as ds_natureza_receita,
+        coalesce(n.ds_natureza_receita, p.cd_natureza_receita) as ds_natureza_receita,
         p.nu_ano_referencia,
         {{ sk_tempo_dia_data_expr("make_date(p.nu_ano_referencia, 1, 1)") }}
             as sk_tempo_ementa
     from pjf_references as p
     left join stn_latest as s
         on p.cd_natureza_receita = s.cd_natureza_receita
+    left join pjf_natureza_texto as n
+        on p.cd_natureza_receita = n.cd_natureza_receita
     where s.cd_natureza_receita is null
 ),
 
