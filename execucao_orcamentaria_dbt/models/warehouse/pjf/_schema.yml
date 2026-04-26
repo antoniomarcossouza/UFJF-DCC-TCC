@@ -102,6 +102,12 @@ models:
                 field: sk_tempo
 
   - name: fct_receita
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_natureza_receita
+              - sk_tempo_referencia
     columns:
       - name: sk_natureza_receita
         data_tests:
@@ -121,6 +127,12 @@ models:
                 field: sk_tempo
 
   - name: fct_receita_acumulada
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sk_natureza_receita
+              - sk_tempo_referencia
     columns:
       - name: sk_natureza_receita
         data_tests:

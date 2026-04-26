@@ -8,6 +8,10 @@ models:
         data_tests:
           - not_null
           - unique
+      - name: cd_natureza_receita
+        data_tests:
+          - not_null
+          - unique
       - name: sk_tempo_ementa
         data_tests:
           - not_null
