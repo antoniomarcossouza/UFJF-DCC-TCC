@@ -93,7 +93,7 @@ def render_sidebar_filters() -> FilterState:
     st.sidebar.header("Filtros globais")
 
     anos_opts = _options(*dim_options.anos_disponiveis())
-    _init_multiselect(K_ANOS, anos_opts, default_first=True)
+    _init_multiselect(K_ANOS, anos_opts)
     _prune_selection(K_ANOS, list(anos_opts.keys()))
     st.sidebar.multiselect(
         "Ano",
