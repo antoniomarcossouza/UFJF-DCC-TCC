@@ -188,10 +188,16 @@ def render_sidebar_filters() -> FilterState:
         meses=tuple(int(m) for m in st.session_state[K_MESES]),
         sk_unidades=tuple(str(x) for x in st.session_state[K_UNIDADES]),
         cd_funcoes=tuple(str(x) for x in st.session_state[K_FUNCOES]),
-        sk_naturezas_despesa=tuple(str(x) for x in st.session_state[K_NAT_DESPESA]),
+        sk_naturezas_despesa=tuple(
+            str(x) for x in st.session_state[K_NAT_DESPESA]
+        ),
         sk_fontes=tuple(str(x) for x in st.session_state[K_FONTES]),
-        sk_fornecedores=tuple(str(x) for x in st.session_state[K_FORNECEDORES]),
-        sk_naturezas_receita=tuple(str(x) for x in st.session_state[K_NAT_RECEITA]),
+        sk_fornecedores=tuple(
+            str(x) for x in st.session_state[K_FORNECEDORES]
+        ),
+        sk_naturezas_receita=tuple(
+            str(x) for x in st.session_state[K_NAT_RECEITA]
+        ),
     )
     st.session_state["filters"] = filters
     return filters

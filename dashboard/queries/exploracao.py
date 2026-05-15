@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
-from dashboard.queries.filters import FilterState, build_despesa_where, build_receita_where
+from dashboard.queries.filters import (
+    FilterState,
+    build_despesa_where,
+    build_receita_where,
+)
 
 
-def detalhe_receita(filters: FilterState, limit: int = 500) -> tuple[str, list]:
+def detalhe_receita(
+    filters: FilterState, limit: int = 500
+) -> tuple[str, list]:
     params: list = []
     where = build_receita_where(filters, params)
     sql = f"""
@@ -27,7 +33,9 @@ def detalhe_receita(filters: FilterState, limit: int = 500) -> tuple[str, list]:
     return sql, params
 
 
-def detalhe_despesa(filters: FilterState, limit: int = 500) -> tuple[str, list]:
+def detalhe_despesa(
+    filters: FilterState, limit: int = 500
+) -> tuple[str, list]:
     params: list = []
     where = build_despesa_where(filters, params)
     sql = f"""

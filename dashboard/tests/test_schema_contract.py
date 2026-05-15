@@ -7,7 +7,6 @@ import pytest
 
 from dashboard.queries.schema import EXPECTED_COLUMNS, validate_contract
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DB_PATH = REPO_ROOT / "data" / "execucao_orcamentaria.duckdb"
 

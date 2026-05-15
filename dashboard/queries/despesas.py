@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from dashboard.queries.filters import FilterState, build_despesa_where, despesa_from_joins
+from dashboard.queries.filters import (
+    FilterState,
+    build_despesa_where,
+    despesa_from_joins,
+)
 
 
 def kpis_despesa(filters: FilterState) -> tuple[str, list]:
@@ -62,7 +66,9 @@ def serie_mensal_despesa(filters: FilterState) -> tuple[str, list]:
     return sql, params
 
 
-def distribuicao_funcional(filters: FilterState, top_n: int = 25) -> tuple[str, list]:
+def distribuicao_funcional(
+    filters: FilterState, top_n: int = 25
+) -> tuple[str, list]:
     params: list = []
     where = build_despesa_where(filters, params)
     sql = f"""
@@ -80,7 +86,9 @@ def distribuicao_funcional(filters: FilterState, top_n: int = 25) -> tuple[str, 
     return sql, params
 
 
-def ranking_naturezas_despesa(filters: FilterState, top_n: int = 20) -> tuple[str, list]:
+def ranking_naturezas_despesa(
+    filters: FilterState, top_n: int = 20
+) -> tuple[str, list]:
     params: list = []
     where = build_despesa_where(filters, params)
     sql = f"""

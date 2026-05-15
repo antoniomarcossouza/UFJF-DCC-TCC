@@ -31,7 +31,9 @@ if not df_kpi.empty:
     kpi.kpi_row(
         [
             kpi.kpi_brl("Previsão inicial", float(r["vl_previsao_inicial"])),
-            kpi.kpi_brl("Previsão atualizada", float(r["vl_previsao_atualizada"])),
+            kpi.kpi_brl(
+                "Previsão atualizada", float(r["vl_previsao_atualizada"])
+            ),
             kpi.kpi_brl("Arrecadado no ano", float(r["vl_arrecadada_ano"])),
             kpi.kpi_pct("% execução da receita", exec_pct),
         ]
@@ -39,12 +41,17 @@ if not df_kpi.empty:
 
 df_serie = run_query(*receitas.serie_mensal_arrecadacao(flt))
 if not df_serie.empty:
-    df_serie["periodo"] = df_serie["sg_mes"] + "/" + df_serie["nu_ano"].astype(str)
+    df_serie["periodo"] = (
+        df_serie["sg_mes"] + "/" + df_serie["nu_ano"].astype(str)
+    )
     charts.line_series(
         df_serie,
         x="periodo",
         y_cols=["vl_arrecadada", "vl_previsto"],
-        labels={"vl_arrecadada": "Arrecadado", "vl_previsto": "Previsto mensal"},
+        labels={
+            "vl_arrecadada": "Arrecadado",
+            "vl_previsto": "Previsto mensal",
+        },
         titulo="Arrecadação mensal vs previsão",
         legenda="Linha azul: arrecadado; laranja: previsto mensal",
         descricao="Identifica sazonalidade e meses de pico ou queda na arrecadação.",
@@ -67,7 +74,9 @@ if not df_heat.empty:
 
 df_rank = run_query(*receitas.ranking_naturezas(flt))
 if not df_rank.empty:
-    df_rank["label"] = df_rank["cd_natureza_receita"] + " - " + df_rank["ds_natureza_receita"]
+    df_rank["label"] = (
+        df_rank["cd_natureza_receita"] + " - " + df_rank["ds_natureza_receita"]
+    )
     charts.bar_horizontal(
         df_rank.head(15),
         y="label",
@@ -97,7 +106,9 @@ if not df_ded.empty:
     d = df_ded.iloc[0]
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Total bruto", fmt_brl(float(d["vl_bruto"])))
-    c2.metric("Categoria 9 (redutoras)", fmt_brl(float(d["vl_deducoes_categoria9"])))
+    c2.metric(
+        "Categoria 9 (redutoras)", fmt_brl(float(d["vl_deducoes_categoria9"]))
+    )
     c3.metric("Valores negativos", fmt_brl(float(d["vl_valores_negativos"])))
     c4.metric("Somente positivos", fmt_brl(float(d["vl_positivo"])))
     st.caption(

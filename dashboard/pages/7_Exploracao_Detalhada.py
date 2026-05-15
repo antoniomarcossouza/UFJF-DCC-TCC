@@ -22,7 +22,9 @@ flt = filters.get_filters()
 st.header("Exploração Detalhada")
 disclaimers.render_data_coverage()
 
-limite = st.slider("Limite de linhas", min_value=100, max_value=2000, value=500, step=100)
+limite = st.slider(
+    "Limite de linhas", min_value=100, max_value=2000, value=500, step=100
+)
 aba = st.radio("Fato", ["Receitas", "Despesas"], horizontal=True)
 
 if aba == "Receitas":

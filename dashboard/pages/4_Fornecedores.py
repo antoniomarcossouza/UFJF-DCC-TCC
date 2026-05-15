@@ -62,7 +62,9 @@ if not df_rank.empty:
     if sk_sel:
         df_evo = run_query(*fornecedores.evolucao_fornecedor(flt, sk_sel))
         if not df_evo.empty:
-            df_evo["periodo"] = df_evo["sg_mes"] + "/" + df_evo["nu_ano"].astype(str)
+            df_evo["periodo"] = (
+                df_evo["sg_mes"] + "/" + df_evo["nu_ano"].astype(str)
+            )
             charts.line_series(
                 df_evo,
                 x="periodo",
@@ -72,4 +74,7 @@ if not df_rank.empty:
                 legenda="Pagamentos mensais ao fornecedor selecionado",
                 descricao="Acompanha tendência de pagamentos e volume de empenhos distintos.",
             )
-            st.metric("Empenhos distintos (período)", int(df_evo["qtd_empenhos"].sum()))
+            st.metric(
+                "Empenhos distintos (período)",
+                int(df_evo["qtd_empenhos"].sum()),
+            )

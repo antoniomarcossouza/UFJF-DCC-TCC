@@ -70,7 +70,9 @@ def build_receita_where(
     tempo_alias: str = "t",
     natureza_alias: str = "nr",
 ) -> str:
-    clauses = build_time_where("receita", filters, params, tempo_alias=tempo_alias)
+    clauses = build_time_where(
+        "receita", filters, params, tempo_alias=tempo_alias
+    )
     if filters.sk_naturezas_receita:
         c = _in_clause(
             f"{fact_alias}.sk_natureza_receita",
@@ -96,7 +98,9 @@ def build_despesa_where(
     fonte_alias: str = "fr",
     fornecedor_alias: str = "fo",
 ) -> str:
-    clauses = build_time_where("despesa", filters, params, tempo_alias=tempo_alias)
+    clauses = build_time_where(
+        "despesa", filters, params, tempo_alias=tempo_alias
+    )
     if filters.sk_unidades:
         c = _in_clause(
             f"{fact_alias}.sk_unidade_administrativa",
@@ -122,11 +126,15 @@ def build_despesa_where(
         if c:
             clauses.append(c)
     if filters.sk_fontes:
-        c = _in_clause(f"{fact_alias}.sk_fonte_recurso", filters.sk_fontes, params)
+        c = _in_clause(
+            f"{fact_alias}.sk_fonte_recurso", filters.sk_fontes, params
+        )
         if c:
             clauses.append(c)
     if filters.sk_fornecedores:
-        c = _in_clause(f"{fact_alias}.sk_fornecedor", filters.sk_fornecedores, params)
+        c = _in_clause(
+            f"{fact_alias}.sk_fornecedor", filters.sk_fornecedores, params
+        )
         if c:
             clauses.append(c)
     if not clauses:
@@ -135,7 +143,7 @@ def build_despesa_where(
 
 
 def despesa_from_joins() -> str:
-    return f"""
+    return """
         from dwh.fct_despesa f
         join dwh.dim_tempo t on f.sk_tempo_empenho = t.sk_tempo
         left join dwh.dim_unidade_administrativa ua
@@ -151,7 +159,7 @@ def despesa_from_joins() -> str:
 
 
 def receita_from_joins() -> str:
-    return f"""
+    return """
         from dwh.fct_receita f
         join dwh.dim_tempo t on f.sk_tempo_referencia = t.sk_tempo
         join dwh.dim_natureza_receita nr
@@ -160,7 +168,7 @@ def receita_from_joins() -> str:
 
 
 def receita_acumulada_from_joins() -> str:
-    return f"""
+    return """
         from dwh.fct_receita_acumulada f
         join dwh.dim_tempo t on f.sk_tempo_referencia = t.sk_tempo
         join dwh.dim_natureza_receita nr

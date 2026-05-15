@@ -42,10 +42,7 @@ if not df_ua.empty:
 df_func = run_query(*unidades.execucao_por_funcao(flt))
 if not df_func.empty:
     df_func["rotulo"] = (
-        "Função "
-        + df_func["cd_funcao"]
-        + " / Sub "
-        + df_func["cd_subfuncao"]
+        "Função " + df_func["cd_funcao"] + " / Sub " + df_func["cd_subfuncao"]
     )
     charts.grouped_bar(
         df_func.head(20),
