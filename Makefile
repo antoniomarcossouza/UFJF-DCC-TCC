@@ -12,3 +12,9 @@ dev: dev_install
 
 ruff: dev_install
 	uv run --extra dev ruff check .
+
+dashboard: dev_install
+	uv run streamlit run dashboard/app.py
+
+dashboard-test: dev_install
+	uv run pytest dashboard/tests -q
