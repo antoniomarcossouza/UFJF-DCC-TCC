@@ -50,32 +50,39 @@ def heatmap_sazonalidade(
     params: list = []
     where = build_receita_where(filters, params)
     sql = f"""
-        with ranked as (
+        with filtered as (
             select
+                t.nu_mes,
+                t.sg_mes,
                 nr.cd_natureza_receita,
                 nr.ds_natureza_receita,
-                sum(f.vl_arrecadada_mes) as total
+                f.vl_arrecadada_mes
             {receita_from_joins()}
             where {where}
-            group by nr.cd_natureza_receita, nr.ds_natureza_receita
+        ),
+        ranked as (
+            select
+                cd_natureza_receita,
+                ds_natureza_receita,
+                sum(vl_arrecadada_mes) as total
+            from filtered
+            group by cd_natureza_receita, ds_natureza_receita
             order by total desc
             limit {top_n}
         )
         select
-            t.nu_mes,
-            t.sg_mes,
-            r.cd_natureza_receita,
-            r.ds_natureza_receita,
+            f.nu_mes,
+            f.sg_mes,
+            f.cd_natureza_receita,
+            f.ds_natureza_receita,
             coalesce(sum(f.vl_arrecadada_mes), 0) as vl_arrecadada
-        {receita_from_joins()}
+        from filtered f
         inner join ranked r
-            on nr.cd_natureza_receita = r.cd_natureza_receita
-        where {where}
-        group by t.nu_mes, t.sg_mes, r.cd_natureza_receita, r.ds_natureza_receita
-        order by t.nu_mes, r.cd_natureza_receita
+            on f.cd_natureza_receita = r.cd_natureza_receita
+        group by f.nu_mes, f.sg_mes, f.cd_natureza_receita, f.ds_natureza_receita
+        order by f.nu_mes, f.cd_natureza_receita
     """
-    # WHERE aparece duas vezes (CTE ranked + select externo)
-    return sql, params + params
+    return sql, params
 
 
 def ranking_naturezas(
