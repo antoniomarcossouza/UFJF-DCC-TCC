@@ -13,7 +13,11 @@ if str(ROOT) not in sys.path:
 
 from dashboard.components import disclaimers, filters, kpi
 from dashboard.queries import per_capita
-from dashboard.utils.config import POPULACAO_PATH, get_populacao_ano, load_populacao
+from dashboard.utils.config import (
+    POPULACAO_PATH,
+    get_populacao_ano,
+    load_populacao,
+)
 from dashboard.utils.db import run_query
 from dashboard.utils.formatting import fmt_brl, fmt_int
 from dashboard.utils.safe_math import divide
@@ -55,8 +59,14 @@ pago_pc = divide(pago, populacao)
 
 kpi.kpi_row(
     [
-        kpi.kpi_brl("Arrecadação per capita", arrec_pc, "Arrecadação acumulada / população"),
-        kpi.kpi_brl("Despesa paga per capita", pago_pc, "Pagamentos / população"),
+        kpi.kpi_brl(
+            "Arrecadação per capita",
+            arrec_pc,
+            "Arrecadação acumulada / população",
+        ),
+        kpi.kpi_brl(
+            "Despesa paga per capita", pago_pc, "Pagamentos / população"
+        ),
     ]
 )
 
@@ -71,7 +81,9 @@ for col, (cd, nome) in zip(cols, setores, strict=True):
     df_set = run_query(*per_capita.gasto_por_funcao(flt, cd))
     vl = float(df_set.iloc[0]["vl_pago"]) if not df_set.empty else 0.0
     pc = divide(vl, populacao)
-    col.metric(f"{nome} (função {cd})", fmt_brl(pc), help=f"Total pago: {fmt_brl(vl)}")
+    col.metric(
+        f"{nome} (função {cd})", fmt_brl(pc), help=f"Total pago: {fmt_brl(vl)}"
+    )
 
 st.caption(
     "Funções conforme classificação funcional (código posicional em cd_funcional_pragmatica). "

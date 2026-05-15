@@ -38,21 +38,32 @@ if not df_ef.empty:
     e = df_ef.iloc[0]
     kpi.kpi_row(
         [
-            kpi.kpi_pct("% liquidado / empenhado", float(e["pct_liquidado_sobre_empenhado"])
-            if e["pct_liquidado_sobre_empenhado"] is not None
-            else None),
-            kpi.kpi_pct("% pago / empenhado", float(e["pct_pago_sobre_empenhado"])
-            if e["pct_pago_sobre_empenhado"] is not None
-            else None),
-            kpi.kpi_pct("% pago / liquidado", float(e["pct_pago_sobre_liquidado"])
-            if e["pct_pago_sobre_liquidado"] is not None
-            else None),
+            kpi.kpi_pct(
+                "% liquidado / empenhado",
+                float(e["pct_liquidado_sobre_empenhado"])
+                if e["pct_liquidado_sobre_empenhado"] is not None
+                else None,
+            ),
+            kpi.kpi_pct(
+                "% pago / empenhado",
+                float(e["pct_pago_sobre_empenhado"])
+                if e["pct_pago_sobre_empenhado"] is not None
+                else None,
+            ),
+            kpi.kpi_pct(
+                "% pago / liquidado",
+                float(e["pct_pago_sobre_liquidado"])
+                if e["pct_pago_sobre_liquidado"] is not None
+                else None,
+            ),
         ]
     )
 
 df_serie = run_query(*despesas.serie_mensal_despesa(flt))
 if not df_serie.empty:
-    df_serie["periodo"] = df_serie["sg_mes"] + "/" + df_serie["nu_ano"].astype(str)
+    df_serie["periodo"] = (
+        df_serie["sg_mes"] + "/" + df_serie["nu_ano"].astype(str)
+    )
     charts.line_series(
         df_serie,
         x="periodo",
@@ -88,7 +99,9 @@ if not df_func.empty:
 
 df_nat = run_query(*despesas.ranking_naturezas_despesa(flt))
 if not df_nat.empty:
-    df_nat["label"] = df_nat["cd_natureza_despesa"] + " - " + df_nat["ds_natureza_despesa"]
+    df_nat["label"] = (
+        df_nat["cd_natureza_despesa"] + " - " + df_nat["ds_natureza_despesa"]
+    )
     charts.bar_horizontal(
         df_nat.head(15),
         y="label",

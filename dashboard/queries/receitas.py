@@ -44,7 +44,9 @@ def serie_mensal_arrecadacao(filters: FilterState) -> tuple[str, list]:
     return sql, params
 
 
-def heatmap_sazonalidade(filters: FilterState, top_n: int = 15) -> tuple[str, list]:
+def heatmap_sazonalidade(
+    filters: FilterState, top_n: int = 15
+) -> tuple[str, list]:
     params: list = []
     where = build_receita_where(filters, params)
     sql = f"""
@@ -72,10 +74,13 @@ def heatmap_sazonalidade(filters: FilterState, top_n: int = 15) -> tuple[str, li
         group by t.nu_mes, t.sg_mes, r.cd_natureza_receita, r.ds_natureza_receita
         order by t.nu_mes, r.cd_natureza_receita
     """
-    return sql, params
+    # WHERE aparece duas vezes (CTE ranked + select externo)
+    return sql, params + params
 
 
-def ranking_naturezas(filters: FilterState, top_n: int = 20) -> tuple[str, list]:
+def ranking_naturezas(
+    filters: FilterState, top_n: int = 20
+) -> tuple[str, list]:
     params: list = []
     where = build_receita_where(filters, params)
     sql = f"""
@@ -102,7 +107,9 @@ def ranking_naturezas(filters: FilterState, top_n: int = 20) -> tuple[str, list]
     return sql, params
 
 
-def receitas_abaixo_previsto(filters: FilterState, limite_pct: float = 80.0) -> tuple[str, list]:
+def receitas_abaixo_previsto(
+    filters: FilterState, limite_pct: float = 80.0
+) -> tuple[str, list]:
     params: list = []
     where = build_receita_where(filters, params)
     sql = f"""
@@ -147,7 +154,9 @@ def deducoes_receita(filters: FilterState) -> tuple[str, list]:
     return sql, params
 
 
-def detalhe_deducoes(filters: FilterState, top_n: int = 30) -> tuple[str, list]:
+def detalhe_deducoes(
+    filters: FilterState, top_n: int = 30
+) -> tuple[str, list]:
     params: list = []
     where = build_receita_where(filters, params)
     sql = f"""

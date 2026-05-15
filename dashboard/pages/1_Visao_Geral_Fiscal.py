@@ -14,7 +14,7 @@ if str(ROOT) not in sys.path:
 from dashboard.components import charts, disclaimers, filters, kpi
 from dashboard.queries import fiscal, receitas
 from dashboard.utils.db import run_query
-from dashboard.utils.formatting import fmt_brl, fmt_pct
+from dashboard.utils.formatting import fmt_brl
 from dashboard.utils.safe_math import pct
 
 st.set_page_config(page_title="Visão Geral Fiscal", layout="wide")
@@ -63,7 +63,9 @@ if not df_ultimo.empty:
 
 df_serie = run_query(*fiscal.serie_mensal_fiscal(flt))
 if not df_serie.empty:
-    df_serie["periodo"] = df_serie["sg_mes"] + "/" + df_serie["nu_ano"].astype(str)
+    df_serie["periodo"] = (
+        df_serie["sg_mes"] + "/" + df_serie["nu_ano"].astype(str)
+    )
     charts.line_series(
         df_serie,
         x="periodo",

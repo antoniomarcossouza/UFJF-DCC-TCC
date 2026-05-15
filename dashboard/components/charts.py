@@ -92,7 +92,9 @@ def treemap_chart(
         st.info("Sem dados para exibir.")
         return
     fig = px.treemap(df, path=path, values=values)
-    fig.update_traces(hovertemplate="%{label}<br>R$ %{value:,.2f}<extra></extra>")
+    fig.update_traces(
+        hovertemplate="%{label}<br>R$ %{value:,.2f}<extra></extra>"
+    )
     render_chart(fig, titulo=titulo, legenda=legenda, descricao=descricao)
 
 
@@ -109,7 +111,9 @@ def heatmap_chart(
     if df.empty:
         st.info("Sem dados para exibir.")
         return
-    pivot = df.pivot_table(index=y, columns=x, values=z, aggfunc="sum", fill_value=0)
+    pivot = df.pivot_table(
+        index=y, columns=x, values=z, aggfunc="sum", fill_value=0
+    )
     fig = px.imshow(
         pivot,
         labels=dict(x="Mês", y="Natureza", color="Arrecadação (R$)"),
@@ -145,7 +149,9 @@ def pareto_chart(
     )
     fig.update_layout(
         yaxis=dict(title="Valor pago (R$)"),
-        yaxis2=dict(title="% acumulado", overlaying="y", side="right", range=[0, 105]),
+        yaxis2=dict(
+            title="% acumulado", overlaying="y", side="right", range=[0, 105]
+        ),
         legend_title_text="Série",
     )
     render_chart(fig, titulo=titulo, legenda=legenda, descricao=descricao)
@@ -167,5 +173,7 @@ def grouped_bar(
     fig = go.Figure()
     for col in y_cols:
         fig.add_trace(go.Bar(name=labels.get(col, col), x=df[x], y=df[col]))
-    fig.update_layout(barmode="group", yaxis_title="Valor (R$)", legend_title_text="Métrica")
+    fig.update_layout(
+        barmode="group", yaxis_title="Valor (R$)", legend_title_text="Métrica"
+    )
     render_chart(fig, titulo=titulo, legenda=legenda, descricao=descricao)

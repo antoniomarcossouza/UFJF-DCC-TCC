@@ -3,7 +3,12 @@
 import numpy as np
 
 from dashboard.components.filters import _normalize_key, _normalize_label
-from dashboard.queries.filters import FilterState, build_despesa_where, build_receita_where
+from dashboard.queries import receitas
+from dashboard.queries.filters import (
+    FilterState,
+    build_despesa_where,
+    build_receita_where,
+)
 
 
 def test_normalize_label_null_rotulo():
@@ -33,6 +38,12 @@ def test_despesa_where_com_funcao():
     where = build_despesa_where(FilterState(cd_funcoes=("10", "12")), params)
     assert "substr" in where
     assert params == ["10", "12"]
+
+
+def test_heatmap_params_match_placeholders():
+    flt = FilterState(anos=(2026,), meses=(1, 2))
+    sql, params = receitas.heatmap_sazonalidade(flt)
+    assert sql.count("?") == len(params)
 
 
 def test_despesa_multiplos_filtros():

@@ -8,7 +8,9 @@ from typing import TypeVar
 Numeric = TypeVar("Numeric", int, float, Decimal)
 
 
-def divide(numerator: Numeric | None, denominator: Numeric | None) -> float | None:
+def divide(
+    numerator: Numeric | None, denominator: Numeric | None
+) -> float | None:
     """Divisão segura; retorna None se denominador nulo ou zero."""
     if numerator is None or denominator is None:
         return None
@@ -18,7 +20,9 @@ def divide(numerator: Numeric | None, denominator: Numeric | None) -> float | No
     return float(numerator) / denom
 
 
-def pct(numerator: Numeric | None, denominator: Numeric | None) -> float | None:
+def pct(
+    numerator: Numeric | None, denominator: Numeric | None
+) -> float | None:
     """Percentual (0-100); None se divisão inválida."""
     ratio = divide(numerator, denominator)
     if ratio is None:

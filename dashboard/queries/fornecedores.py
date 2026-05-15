@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
-from dashboard.queries.filters import FilterState, build_despesa_where, despesa_from_joins
+from dashboard.queries.filters import (
+    FilterState,
+    build_despesa_where,
+    despesa_from_joins,
+)
 
 
-def ranking_fornecedores(filters: FilterState, top_n: int = 25) -> tuple[str, list]:
+def ranking_fornecedores(
+    filters: FilterState, top_n: int = 25
+) -> tuple[str, list]:
     params: list = []
     where = build_despesa_where(filters, params)
     sql = f"""
