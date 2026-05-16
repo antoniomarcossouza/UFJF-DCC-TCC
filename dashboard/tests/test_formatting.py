@@ -5,6 +5,7 @@ from __future__ import annotations
 from dashboard.utils.formatting import (
     fmt_brl_compact,
     fmt_delta_pct,
+    limpar_rotulo_natureza_despesa,
     limpar_rotulo_natureza_receita,
 )
 
@@ -60,3 +61,12 @@ def test_limpar_rotulo_natureza_sem_prefixo():
 
 def test_limpar_rotulo_natureza_none():
     assert limpar_rotulo_natureza_receita(None) == "—"
+
+
+def test_limpar_rotulo_natureza_despesa_prefixo():
+    raw = "3390390000000000 - MATERIAL DE CONSUMO"
+    assert limpar_rotulo_natureza_despesa(raw) == "MATERIAL DE CONSUMO"
+
+
+def test_limpar_rotulo_natureza_despesa_sem_prefixo():
+    assert limpar_rotulo_natureza_despesa("Só texto") == "Só texto"

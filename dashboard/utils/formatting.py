@@ -34,8 +34,8 @@ def fmt_date(value: date | None) -> str:
     return value.strftime("%d/%m/%Y")
 
 
-def limpar_rotulo_natureza_receita(ds: str | None) -> str:
-    """Remove prefixo numérico de ds_natureza_receita (ex.: '161... - ')."""
+def _limpar_prefixo_codigo_descricao(ds: str | None) -> str:
+    """Remove prefixo tipo código MCASP antes do traço (receita/despesa)."""
     if ds is None:
         return "—"
     s = str(ds).strip()
@@ -44,6 +44,16 @@ def limpar_rotulo_natureza_receita(ds: str | None) -> str:
     s = re.sub(r"^\d+(\.\d+)?\s*-\s*", "", s)
     s = s.strip()
     return s if s else "—"
+
+
+def limpar_rotulo_natureza_receita(ds: str | None) -> str:
+    """Remove prefixo numérico de ds_natureza_receita (ex.: '161... - ')."""
+    return _limpar_prefixo_codigo_descricao(ds)
+
+
+def limpar_rotulo_natureza_despesa(ds: str | None) -> str:
+    """Remove prefixo numérico de ds_natureza_despesa (ex.: '339039... - ')."""
+    return _limpar_prefixo_codigo_descricao(ds)
 
 
 def _brl_compact_body(abs_val: float, decimals: int) -> str:
