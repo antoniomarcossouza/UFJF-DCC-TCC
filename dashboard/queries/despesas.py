@@ -24,7 +24,7 @@ def kpis_despesa(filters: FilterState) -> tuple[str, list]:
 
 
 def eficiencia_execucao(filters: FilterState) -> tuple[str, list]:
-    """Percentuais liquidado/pago sobre empenhado (métricas derivadas dos fatos)."""
+    """Percentuais liquidado/pago sobre empenhado (derivados dos fatos)."""
     params: list = []
     where = build_despesa_where(filters, params)
     sql = f"""
@@ -75,11 +75,52 @@ def distribuicao_funcional(
         select
             substr(fp.cd_funcional_pragmatica, 1, 2) as cd_funcao,
             substr(fp.cd_funcional_pragmatica, 4, 3) as cd_subfuncao,
-            fp.ds_funcional_pragmatica,
+            max(fp.ds_funcional_pragmatica) as ds_funcional_pragmatica,
+            coalesce(
+                max(m.ds_funcao),
+                'Função '
+                || lpad(
+                    trim(cast(
+                        max(substr(fp.cd_funcional_pragmatica, 1, 2))
+                        as varchar
+                    )),
+                    2,
+                    '0'
+                )
+            ) as nm_funcao_mcasp,
+            coalesce(
+                max(m.ds_subfuncao),
+                'Subfunção '
+                || lpad(
+                    trim(cast(
+                        max(substr(fp.cd_funcional_pragmatica, 4, 3))
+                        as varchar
+                    )),
+                    3,
+                    '0'
+                )
+            ) as nm_subfuncao_mcasp,
             coalesce(sum(f.vl_pago_mes), 0) as vl_pago
         {despesa_from_joins()}
+        left join dwh.dim_funcional_mcasp m
+            on lpad(
+                trim(cast(
+                    substr(fp.cd_funcional_pragmatica, 1, 2) as varchar
+                )),
+                2,
+                '0'
+            ) = m.cd_funcao
+            and lpad(
+                trim(cast(
+                    substr(fp.cd_funcional_pragmatica, 4, 3) as varchar
+                )),
+                3,
+                '0'
+            ) = m.cd_subfuncao
         where {where}
-        group by 1, 2, 3
+        group by
+            substr(fp.cd_funcional_pragmatica, 1, 2),
+            substr(fp.cd_funcional_pragmatica, 4, 3)
         order by vl_pago desc
         limit {top_n}
     """
@@ -107,7 +148,8 @@ def ranking_naturezas_despesa(
             b.ds_natureza_despesa,
             b.vl_pago,
             case when t.geral > 0
-                then 100.0 * b.vl_pago / t.geral else null end as pct_participacao
+                then 100.0 * b.vl_pago / t.geral
+                else null end as pct_participacao
         from base b cross join total t
         order by b.vl_pago desc
         limit {top_n}

@@ -62,6 +62,64 @@ GLOSSARY: dict[str, tuple[str, str]] = {
         "Valores que reduzem a receita bruta (ex.: contribuição ao FUNDEB, "
         "restituições).",
     ),
+    "empenho": (
+        "Empenho",
+        "Compromisso formal de gastar: reserva o valor para uma despesa "
+        "contratada ou autorizada, antes do pagamento.",
+    ),
+    "liquidacao": (
+        "Liquidação",
+        "Reconhecimento de que o serviço foi prestado ou o bem entregue; "
+        "confirma o valor a pagar após o empenho.",
+    ),
+    "pagamento": (
+        "Pagamento",
+        "Saída efetiva do dinheiro do caixa (ordem bancária, transferência) "
+        "para o credor.",
+    ),
+    "funcao": (
+        "Função",
+        "Grande área de governo (saúde, educação, transporte) definida por "
+        "código numérico no orçamento.",
+    ),
+    "subfuncao": (
+        "Subfunção",
+        "Detalhe dentro da função (ex.: ensino fundamental dentro de "
+        "educação), também identificada por código.",
+    ),
+    "natureza_despesa": (
+        "Natureza da despesa",
+        "Classificação econômica do gasto: pessoal, material, serviços, "
+        "obras etc.",
+    ),
+    "unidade_administrativa": (
+        "Unidade administrativa",
+        "Órgão ou secretaria responsável por executar parte do orçamento "
+        "(empenhos e pagamentos).",
+    ),
+    "fornecedor": (
+        "Fornecedor",
+        "Pessoa física ou jurídica que recebe pagamento da prefeitura por "
+        "bens ou serviços.",
+    ),
+    "pareto": (
+        "Curva de Pareto",
+        "Princípio de Pareto (80/20): em muitos casos, poucos itens somam "
+        "a maior parte do total. Aqui, cada barra é o valor pago a um "
+        "fornecedor (do maior para o menor); a linha mostra o percentual "
+        "acumulado. Se a linha sobe muito rápido à esquerda, poucos "
+        "credores concentram quase todo o pagamento.",
+    ),
+    "saldo_fiscal": (
+        "Saldo fiscal (recorte)",
+        "Diferença entre arrecadação e pagamentos no período filtrado; "
+        "positivo indica que entradas cobriram saídas consolidadas.",
+    ),
+    "orcamento_autorizado": (
+        "Orçamento autorizado",
+        "Limite legal de despesa (dotação) aprovado na lei orçamentária. "
+        "Não está disponível neste painel; usamos empenho/liquidação/pago.",
+    ),
 }
 
 

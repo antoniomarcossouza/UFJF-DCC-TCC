@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from dashboard.utils.formatting import fmt_pct
+from datetime import date
+
+from dashboard.utils.formatting import fmt_brl_compact, fmt_pct
 
 
 def insight_yoy(
@@ -110,4 +112,268 @@ def insight_evolucao_anual(
     return (
         f"Entre {a0} e {a1}, a arrecadação total {tendencia} "
         f"{fmt_pct(abs(variacao), decimals=1)}.{extra}"
+    )
+
+
+def insight_saldo_fiscal(
+    arrecadacao: float | None,
+    pagamentos: float | None,
+    saldo: float | None,
+) -> str:
+    """Resumo se arrecadação cobre pagamentos no recorte."""
+    if (
+        arrecadacao is None
+        or pagamentos is None
+        or saldo is None
+    ):
+        return (
+            "Saldo fiscal não calculado: faltam arrecadação, pagamentos ou "
+            "ambos no recorte dos filtros."
+        )
+    if arrecadacao == 0 and pagamentos == 0:
+        return "Arrecadação e pagamentos zerados neste recorte."
+    if saldo >= 0:
+        return (
+            "No recorte, a arrecadação cobre os pagamentos: saldo "
+            f"{fmt_brl_compact(saldo)} (entrou mais do que saiu em valor "
+            "consolidado)."
+        )
+    return (
+        "No recorte, os pagamentos superam a arrecadação: saldo "
+        f"{fmt_brl_compact(saldo)} (saída maior que entrada consolidada)."
+    )
+
+
+def insight_saldo_ultimo_mes(
+    saldo_mes: float | None,
+    dt_ref: object | None,
+) -> str:
+    """Interpreta saldo do último mês com dado."""
+    if saldo_mes is None:
+        return "Saldo do último mês indisponível."
+    ref_txt = "—"
+    if dt_ref is not None:
+        if isinstance(dt_ref, date):
+            ref_txt = dt_ref.strftime("%m/%Y")
+        elif hasattr(dt_ref, "strftime"):
+            ref_txt = str(dt_ref.strftime("%m/%Y"))  # type: ignore[union-attr]
+    if saldo_mes >= 0:
+        return (
+            f"No último mês com dado ({ref_txt}), arrecadação ≥ pagamentos "
+            f"(saldo mensal {fmt_brl_compact(saldo_mes)})."
+        )
+    return (
+        f"No último mês com dado ({ref_txt}), pagamentos > arrecadação "
+        f"(saldo mensal {fmt_brl_compact(saldo_mes)})."
+    )
+
+
+def insight_tendencia_saldo(saldos_mensais: list[float]) -> str:
+    """Conta meses com saldo negativo na série mensal."""
+    if not saldos_mensais:
+        return "Sem série de saldo mensal para analisar."
+    neg = sum(1 for s in saldos_mensais if s < 0)
+    total = len(saldos_mensais)
+    if total == 0:
+        return "Sem série de saldo mensal para analisar."
+    if neg == 0:
+        return (
+            f"Em todos os {total} mês(es) da série, o saldo mensal foi "
+            "≥ 0 (arrecadação cobriu pagamentos mês a mês)."
+        )
+    if neg == total:
+        return (
+            f"Em todos os {total} mês(es) da série, o saldo mensal foi "
+            "negativo (pagamentos superaram arrecadação mês a mês)."
+        )
+    pct_neg = 100.0 * neg / total
+    return (
+        f"{neg} de {total} mês(es) com saldo negativo "
+        f"({fmt_pct(pct_neg, decimals=1)} da série)."
+    )
+
+
+def insight_estagios_despesa(
+    empenhado: float | None,
+    liquidado: float | None,
+    pago: float | None,
+) -> str:
+    """Explica fluxo empenho → liquidação → pagamento."""
+    if empenhado is None or liquidado is None or pago is None:
+        return (
+            "Valores de empenho, liquidação ou pagamento incompletos para "
+            "resumir o fluxo."
+        )
+    if empenhado == 0 and liquidado == 0 and pago == 0:
+        return (
+            "Sem movimento de despesa (empenho, liquidação e pagamento) no "
+            "recorte."
+        )
+    return (
+        "Fluxo típico: empenho reserva o valor; liquidação confirma que o "
+        "serviço ou bem foi entregue; pagamento é o dinheiro que saiu de "
+        f"fato ({fmt_brl_compact(pago)} pago no período)."
+    )
+
+
+def insight_eficiencia_execucao(
+    pct_liq_emp: float | None,
+    pct_pago_emp: float | None,
+    pct_pago_liq: float | None,
+) -> str:
+    """Interpreta gargalos entre estágios."""
+    if pct_liq_emp is None and pct_pago_emp is None and pct_pago_liq is None:
+        return (
+            "Indicadores de eficiência (liquidado/pago sobre empenhado) "
+            "indisponíveis — empenho total pode ser zero."
+        )
+    pl = (
+        fmt_pct(pct_liq_emp, decimals=1) if pct_liq_emp is not None else "—"
+    )
+    pe = (
+        fmt_pct(pct_pago_emp, decimals=1) if pct_pago_emp is not None else "—"
+    )
+    plq = (
+        fmt_pct(pct_pago_liq, decimals=1)
+        if pct_pago_liq is not None
+        else "—"
+    )
+    partes: list[str] = [
+        f"liquidado sobre empenhado: {pl}",
+        f"pago sobre empenhado: {pe}",
+        f"pago sobre liquidado: {plq}",
+    ]
+    texto = "; ".join(partes) + "."
+    if (
+        pct_pago_emp is not None
+        and pct_liq_emp is not None
+        and pct_pago_emp < 70.0
+        and pct_liq_emp >= 80.0
+    ):
+        return (
+            texto
+            + " Muito liquidado com pouco pago pode indicar fila de "
+            "pagamentos ou atraso."
+        )
+    return texto
+
+
+def pct_concentracao_fim_periodo(
+    pagamentos_mes: list[tuple[int, int, float]],
+) -> float | None:
+    """Percentual do pago nos dois últimos meses da série; None se inválido."""
+    if not pagamentos_mes:
+        return None
+    acc: dict[tuple[int, int], float] = {}
+    for y, m, v in pagamentos_mes:
+        key = (int(y), int(m))
+        acc[key] = acc.get(key, 0.0) + float(v)
+    items = sorted(acc.items(), key=lambda x: (x[0][0], x[0][1]))
+    total = sum(v for _, v in items)
+    if total <= 0 or len(items) <= 2:
+        return None
+    last_two_keys = [items[-2][0], items[-1][0]]
+    soma_ultimos = sum(acc[k] for k in last_two_keys)
+    return 100.0 * soma_ultimos / total
+
+
+def insight_concentracao_fim_periodo(
+    pagamentos_mes: list[tuple[int, int, float]],
+) -> str:
+    """% dos pagamentos concentrados nos dois últimos meses da série."""
+    if not pagamentos_mes:
+        return (
+            "Sem série mensal suficiente para medir concentração no fim do "
+            "período."
+        )
+    acc: dict[tuple[int, int], float] = {}
+    for y, m, v in pagamentos_mes:
+        key = (int(y), int(m))
+        acc[key] = acc.get(key, 0.0) + float(v)
+    items = sorted(acc.items(), key=lambda x: (x[0][0], x[0][1]))
+    total = sum(v for _, v in items)
+    if total <= 0:
+        return "Pagamentos zerados no recorte: concentração não se aplica."
+    if len(items) <= 2:
+        return (
+            f"Período com {len(items)} mês(es): indicador dos dois últimos "
+            "meses menos informativo."
+        )
+    last_two_keys = [items[-2][0], items[-1][0]]
+    soma_ultimos = sum(acc[k] for k in last_two_keys)
+    pct_val = 100.0 * soma_ultimos / total
+    a1, m1 = last_two_keys[0]
+    a2, m2 = last_two_keys[1]
+    return (
+        f"Nos dois últimos meses da série ({m1:02d}/{a1} e {m2:02d}/{a2}), "
+        f"concentram-se {fmt_pct(pct_val, decimals=1)} do total pago no "
+        "gráfico."
+    )
+
+
+def insight_top_fornecedor(
+    nome: str | None,
+    vl_pago: float | None,
+    pct_total: float | None,
+) -> str:
+    if not nome or not str(nome).strip():
+        return "Fornecedor líder não identificado neste recorte."
+    nm = str(nome).strip()
+    if vl_pago is None:
+        return f"Principal fornecedor por valor: {nm}."
+    vtxt = fmt_brl_compact(vl_pago)
+    if pct_total is None:
+        return f"O fornecedor que mais recebeu pagamentos foi {nm} ({vtxt})."
+    return (
+        f"O fornecedor que mais recebeu foi {nm}, com {vtxt} "
+        f"({fmt_pct(pct_total, decimals=1)} do total pago no ranking)."
+    )
+
+
+def insight_concentracao_pareto(pct_top_n: float | None, n: int) -> str:
+    """Risco de dependência quando poucos concentram muito."""
+    if pct_top_n is None or n <= 0:
+        return "Concentração nos maiores fornecedores não calculada."
+    return (
+        f"Os {n} maiores fornecedores somam {fmt_pct(pct_top_n, decimals=1)} "
+        "do total pago no recorte — alta concentração pode indicar "
+        "dependência de poucos credores."
+    )
+
+
+def insight_top_unidade(
+    nome: str | None,
+    vl_pago: float | None,
+    pct_total: float | None,
+) -> str:
+    if not nome or not str(nome).strip():
+        return "Unidade com maior execução não identificada."
+    nm = str(nome).strip()
+    if vl_pago is None:
+        return f"A unidade que mais pagou no recorte foi: {nm}."
+    vtxt = fmt_brl_compact(vl_pago)
+    if pct_total is None:
+        return f"A unidade com maior volume pago foi {nm} ({vtxt})."
+    return (
+        f"A unidade com maior volume pago foi {nm} ({vtxt}), "
+        f"{fmt_pct(pct_total, decimals=1)} do total do ranking exibido."
+    )
+
+
+def insight_top_funcao(
+    label: str | None,
+    vl_pago: float | None,
+    pct_total: float | None,
+) -> str:
+    if not label or not str(label).strip():
+        return "Função/subfunção líder não identificada."
+    lb = str(label).strip()
+    if vl_pago is None:
+        return f"A área funcional que mais concentrou pagamento: {lb}."
+    vtxt = fmt_brl_compact(vl_pago)
+    if pct_total is None:
+        return f"Maior volume pago por função/subfunção: {lb} ({vtxt})."
+    return (
+        f"Maior volume pago por função/subfunção: {lb} ({vtxt}), "
+        f"{fmt_pct(pct_total, decimals=1)} do total do ranking."
     )
