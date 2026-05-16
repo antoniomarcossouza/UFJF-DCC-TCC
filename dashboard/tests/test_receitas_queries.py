@@ -5,8 +5,8 @@ from pathlib import Path
 import duckdb
 import pytest
 
-from dashboard.queries.filters import FilterState
 from dashboard.queries import receitas
+from dashboard.queries.filters import FilterState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DB_PATH = REPO_ROOT / "data" / "execucao_orcamentaria.duckdb"
@@ -36,4 +36,36 @@ def test_heatmap_executes(connection):
 
 def test_heatmap_sem_filtro_executes(connection):
     sql, params = receitas.heatmap_sazonalidade(FilterState())
+    _assert_executes(connection, sql, params)
+
+
+def test_kpis_yoy_executes(connection):
+    sql, params = receitas.kpis_yoy_mesma_janela(FilterState())
+    _assert_executes(connection, sql, params)
+
+
+def test_kpis_yoy_com_meses_executes(connection):
+    flt = FilterState(meses=(1, 2, 3))
+    sql, params = receitas.kpis_yoy_mesma_janela(flt)
+    _assert_executes(connection, sql, params)
+
+
+def test_serie_anual_executes(connection):
+    sql, params = receitas.serie_anual_arrecadacao(FilterState())
+    _assert_executes(connection, sql, params)
+
+
+def test_serie_anual_previsto_realizado_executes(connection):
+    sql, params = receitas.serie_anual_previsto_realizado(FilterState())
+    _assert_executes(connection, sql, params)
+
+
+def test_arrecadacao_por_origem_executes(connection):
+    flt = FilterState(anos=(2025,))
+    sql, params = receitas.arrecadacao_por_origem(flt)
+    _assert_executes(connection, sql, params)
+
+
+def test_principal_fonte_executes(connection):
+    sql, params = receitas.principal_fonte(FilterState(anos=(2025,)))
     _assert_executes(connection, sql, params)

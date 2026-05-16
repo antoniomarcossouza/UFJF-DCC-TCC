@@ -10,6 +10,14 @@ from dashboard.queries.filters import (
 )
 
 
+def _receita_where_so_natureza(
+    filters: FilterState, params: list
+) -> str:
+    """WHERE de receita apenas com filtro de natureza (sem ano/mês)."""
+    flt = FilterState(sk_naturezas_receita=filters.sk_naturezas_receita)
+    return build_receita_where(flt, params)
+
+
 def kpis_execucao_receita(filters: FilterState) -> tuple[str, list]:
     params: list = []
     where = build_receita_where(filters, params)
@@ -157,6 +165,142 @@ def deducoes_receita(filters: FilterState) -> tuple[str, list]:
                 then f.vl_arrecadada_mes else 0 end), 0) as vl_positivo
         {receita_from_joins()}
         where {where}
+    """
+    return sql, params
+
+
+def kpis_yoy_mesma_janela(filters: FilterState) -> tuple[str, list]:
+    """YoY ignorando filtro de ano: ano corrente = max(nu_ano) na base.
+
+    Janela de meses: se houver filtro de mês, usa esses meses nos dois anos;
+    senão, jan até último mês com dado no ano corrente.
+    """
+    params: list = []
+    where_nat = _receita_where_so_natureza(filters, params)
+    if filters.meses:
+        placeholders = ", ".join("?" for _ in filters.meses)
+        mes_clause = f"t.nu_mes in ({placeholders})"
+        params.extend(int(m) for m in filters.meses)
+    else:
+        mes_clause = "t.nu_mes <= ml.nu_mes_max"
+    sql = f"""
+        with ano_ref as (
+            select max(t.nu_ano) as ano_atual
+            from dwh.fct_receita f
+            join dwh.dim_tempo t on f.sk_tempo_referencia = t.sk_tempo
+        ),
+        mes_lim as (
+            select max(t.nu_mes) as nu_mes_max
+            from dwh.fct_receita f
+            join dwh.dim_tempo t on f.sk_tempo_referencia = t.sk_tempo
+            cross join ano_ref ar
+            where t.nu_ano = ar.ano_atual
+        )
+        select
+            ar.ano_atual,
+            ar.ano_atual - 1 as ano_anterior,
+            ml.nu_mes_max as mes_limite_corrente,
+            coalesce(
+                sum(
+                    case when t.nu_ano = ar.ano_atual
+                    then f.vl_arrecadada_mes else 0 end
+                ),
+                0
+            ) as vl_atual,
+            coalesce(
+                sum(
+                    case when t.nu_ano = ar.ano_atual - 1
+                    then f.vl_arrecadada_mes else 0 end
+                ),
+                0
+            ) as vl_anterior
+        from dwh.fct_receita f
+        join dwh.dim_tempo t on f.sk_tempo_referencia = t.sk_tempo
+        join dwh.dim_natureza_receita nr
+            on f.sk_natureza_receita = nr.sk_natureza_receita
+        cross join ano_ref ar
+        cross join mes_lim ml
+        where (t.nu_ano = ar.ano_atual or t.nu_ano = ar.ano_atual - 1)
+            and ({where_nat})
+            and ({mes_clause})
+        group by ar.ano_atual, ml.nu_mes_max
+    """
+    return sql, params
+
+
+def serie_anual_arrecadacao(filters: FilterState) -> tuple[str, list]:
+    """Total arrecadado por ano (série histórica); respeita só natureza."""
+    params: list = []
+    where_nat = _receita_where_so_natureza(filters, params)
+    sql = f"""
+        select
+            t.nu_ano,
+            coalesce(sum(f.vl_arrecadada_mes), 0) as vl_arrecadada
+        {receita_from_joins()}
+        where {where_nat}
+        group by t.nu_ano
+        order by t.nu_ano
+    """
+    return sql, params
+
+
+def serie_anual_previsto_realizado(filters: FilterState) -> tuple[str, list]:
+    """Soma mensal por ano: arrecadado e previsto (série histórica)."""
+    params: list = []
+    where_nat = _receita_where_so_natureza(filters, params)
+    sql = f"""
+        select
+            t.nu_ano,
+            coalesce(sum(f.vl_arrecadada_mes), 0) as vl_arrecadada,
+            coalesce(sum(f.vl_previsto_mensal), 0) as vl_previsto
+        {receita_from_joins()}
+        where {where_nat}
+        group by t.nu_ano
+        order by t.nu_ano
+    """
+    return sql, params
+
+
+def arrecadacao_por_origem(filters: FilterState) -> tuple[str, list]:
+    """Agregação por prefixo de 3 dígitos do código MCASP (mapear no shell)."""
+    params: list = []
+    where = build_receita_where(filters, params)
+    sql = f"""
+        select
+            substr(nr.cd_natureza_receita, 1, 3) as cd_prefixo3,
+            coalesce(sum(f.vl_arrecadada_mes), 0) as vl_arrecadada
+        {receita_from_joins()}
+        where {where}
+        group by substr(nr.cd_natureza_receita, 1, 3)
+        order by vl_arrecadada desc
+    """
+    return sql, params
+
+
+def principal_fonte(filters: FilterState) -> tuple[str, list]:
+    """Maior prefixo MCASP (3 dígitos) por valor arrecadado no recorte."""
+    params: list = []
+    where = build_receita_where(filters, params)
+    sql = f"""
+        with agg as (
+            select
+                substr(nr.cd_natureza_receita, 1, 3) as cd_prefixo3,
+                coalesce(sum(f.vl_arrecadada_mes), 0) as vl_arrecadada
+            {receita_from_joins()}
+            where {where}
+            group by substr(nr.cd_natureza_receita, 1, 3)
+        ),
+        tot as (select sum(vl_arrecadada) as geral from agg)
+        select
+            a.cd_prefixo3,
+            a.vl_arrecadada,
+            case when t.geral > 0
+                then 100.0 * a.vl_arrecadada / t.geral
+                else null end as pct_participacao
+        from agg a
+        cross join tot t
+        order by a.vl_arrecadada desc
+        limit 1
     """
     return sql, params
 

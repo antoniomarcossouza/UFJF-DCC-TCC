@@ -7,6 +7,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
+_PLOTLY_CONFIG: dict = {
+    "displayModeBar": False,
+    "scrollZoom": False,
+}
+
 
 def render_chart(
     fig: go.Figure,
@@ -16,7 +21,14 @@ def render_chart(
     descricao: str,
 ) -> None:
     st.subheader(titulo)
-    st.plotly_chart(fig, width="stretch")
+    fig.update_layout(dragmode=False)
+    fig.update_xaxes(fixedrange=True)
+    fig.update_yaxes(fixedrange=True)
+    st.plotly_chart(
+        fig,
+        width="stretch",
+        config=_PLOTLY_CONFIG,
+    )
     st.caption(f"Legenda: {legenda}")
     st.markdown(f":grey[{descricao}]")
 
