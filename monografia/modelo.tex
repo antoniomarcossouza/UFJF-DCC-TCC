@@ -1,0 +1,126 @@
+\NeedsTeXFormat{LaTeX2e}
+%-----------------------------------------------------------
+\documentclass[a4paper,12pt]{monografia}
+\usepackage[portuguese, colorinlistoftodos, textsize=tiny]{todonotes}
+\usepackage{amsmath,amsthm,amsfonts,amssymb}
+\usepackage[mathcal]{eucal}
+\usepackage{latexsym}
+\usepackage[portuguese]{babel}  
+\usepackage[utf8]{inputenc}
+\usepackage{setspace}
+%\usepackage{natbib}
+\usepackage{bm}
+\usepackage[portuguese,algoruled,longend, linesnumbered]{algorithm2e}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+ \hypersetup{colorlinks,
+    debug=false,
+    linkcolor=black,  %%% cor do tableofcontents, \ref, \footnote, etc
+    citecolor=black,  %%% cor do \cite
+    urlcolor=black,   %%% cor do \url e \href
+    bookmarksopen=true,
+ }
+\usepackage[alf,bibjustif]{abntex2cite}
+
+\newcounter{todocounter}
+\newcommand{\comment}[2][]
+{\stepcounter{todocounter}\todo[caption={\thetodocounter: #2}, #1] 
+{\begin{spacing}{1}\thetodocounter: #2\end{spacing}}}
+\reversemarginpar
+\setlength{\marginparwidth}{2.5cm}
+\lstloadlanguages{C}
+%-----------------------------------------------------------
+%-----------------------------------------------------------
+\theoremstyle{plain}
+\newtheorem{theorem}{Teorema}[section]
+\newtheorem{axiom}{Axioma}[section]
+\newtheorem{corollary}{Corol\'ario}[section]
+\newtheorem{lemma}{Lema}[section]
+\newtheorem{proposition}{Proposi\c{c}\~ao}[section]
+%-----------------------------------------------------------
+\theoremstyle{definition}
+\newtheorem{definition}{Defini\c{c}\~ao}[section]
+\newtheorem{example}{Exemplo}[section]
+%-----------------------------------------------------------
+\theoremstyle{remark}
+\newtheorem{remark}{Observa\c{c}\~ao}[section]
+%-----------------------------------------------------------
+%-----------------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\K}{\mathbb{K}}
+\newcommand{\I}{\mathbb{I}}
+\newcommand{\id}{\mathbf{1}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\V}{{\cal V}}
+% --------------------------------------------------
+\def\ind{\hbox{ ind }}
+% --------------------------------------------------
+\begin{document}
+\include{pretexto}
+% --------------------------------------------------
+\begin{dedicatoria}
+Pensar em uma dedicatória legal pra por aqui.
+\end{dedicatoria}
+
+
+% --------------------------------------------------
+\resumo{Resumo}
+A divulgação de dados orçamentários municipais tem avançado com a ampliação dos Portais da Transparência, mas a forma como essas informações são disponibilizadas ainda impõe barreiras à compreensão da população. Planilhas extensas, formatos heterogêneos e linguagem técnica dificultam o acompanhamento efetivo da execução orçamentária e limitam o exercício do controle social. Este trabalho propõe o desenvolvimento de um \textit{Data Warehouse} para a análise da execução orçamentária de Juiz de Fora, integrando informações dispersas do Portal da Transparência municipal e estruturando-as em um modelo dimensional. A pesquisa utiliza técnicas de ETL para consolidar dados de despesas e receitas, construindo indicadores com o objetivo de facilitar a interpretação cidadã dos gastos públicos por meio de \textit{dashboards} interativos, permitindo que cidadãos fiscalizem a aplicação de recursos com base em evidências consolidadas e acessíveis.
+\noindent \\ \textbf{Palavras-chave:} transparência pública; orçamento municipal; \textit{data warehouse}; controle social; modelagem dimensional.
+
+\resumo{Abstract}
+The disclosure of municipal budget data has advanced with the expansion of Transparency Portals, but the way this information is made available still imposes barriers to public understanding. Extensive spreadsheets, heterogeneous formats, and technical language hinder effective monitoring of budget execution and limit the exercise of social control. This work proposes the development of a Data Warehouse for analyzing budget execution in Juiz de Fora, integrating dispersed information from the municipal Transparency Portal and structuring it into a dimensional model. The research uses ETL techniques to consolidate expenditure and revenue data, building indicators to facilitate citizen interpretation of public spending through interactive dashboards, enabling citizens to monitor the allocation of resources based on consolidated and accessible evidence.
+\noindent \\ \textbf{Keywords:} public transparency; municipal budget; data warehouse; social control; dimensional modeling.
+
+% --------------------------------------------------
+\agradecimento{Agradecimentos} \indent\indent 
+Agradecer.
+
+\newpage
+
+% --------------------------------------------------
+\begin{epigrafe}
+``Citação''.\\
+\hfill Alguém
+\end{epigrafe}
+
+% -----Sumário--------------------------------------
+\tableofcontents \thispagestyle{empty} \listoffigures
+\thispagestyle{empty} \listoftables \thispagestyle{empty}
+
+% -----Glossário------------------------------------
+\chapter*{Lista de Abreviações} \addcontentsline{toc}{chapter}{Lista de Abreviações}
+\doublespacing  \begin{tabular}{l l}
+
+BI   & \textit{Business Intelligence} \\
+DCC  & Departamento de Ciência da Computação \\
+DW   & \textit{Data Warehouse} \\
+ETL  & \textit{Extract, Transform, Load} \\
+LAI  & Lei de Acesso à Informação \\
+LDO  & Lei de Diretrizes Orçamentárias \\
+LOA  & Lei Orçamentária Anual \\
+MCASP & Manual de Contabilidade Aplicada ao Setor Público \\
+MTO  & Manual Técnico de Orçamento \\
+PPA  & Plano Plurianual \\
+UFJF & Universidade Federal de Juiz de Fora \\
+
+\end{tabular}  \thispagestyle{empty}
+
+% -----Conteúdo-------------------------------------
+\pagestyle{ruledheader}
+\input{conteudo/0-intro}
+\input{conteudo/1-fundamentacao}
+\input{conteudo/2-metodologia}
+
+% -----Bibliografia---------------------------------
+\singlespacing
+\bibliographystyle{abntex2-alf}
+\bibliography{referencias}
+
+% --------------------------------------------------
+\end{document}
