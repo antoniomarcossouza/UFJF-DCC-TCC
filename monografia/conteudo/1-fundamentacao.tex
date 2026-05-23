@@ -1,0 +1,21 @@
+\chapter{Fundamentação Teórica}
+
+\section{Orçamento Público e Transparência Governamental}
+
+O orçamento público brasileiro estrutura-se em três instrumentos integrados: Plano Plurianual (PPA), Lei de Diretrizes Orçamentárias (LDO) e Lei Orçamentária Anual (LOA) \cite{giacomoni2021orcamento}. O PPA define as diretrizes, objetivos e metas da administração pública para um período de quatro anos; a LDO estabelece as metas e prioridades para o exercício seguinte; e a LOA estima receitas e fixa despesas para cada ano. As despesas são classificadas segundo dimensões institucional, funcional, programática e por natureza, e cada despesa percorre três estágios distintos: empenho, que reserva o crédito; liquidação, que verifica o direito do credor; e pagamento, que efetiva a transferência de recursos.
+
+Documentos normativos como o Manual de Contabilidade Aplicada ao Setor Público (MCASP) e o Manual Técnico de Orçamento (MTO) padronizam essas classificações em âmbito nacional \cite{MCASP}. Contudo, pesquisas mostram que a nomenclatura contábil --- repleta de termos como ``elemento de despesa'', ``função programática'' e ``fonte de recurso'' --- dificulta significativamente a interpretação cidadã, evidenciando a necessidade de soluções tecnológicas que reorganizem e contextualizem a informação pública \cite{melo2019proposta,marco2022transparencia}.
+
+\section{Controle Social e Transparência}
+
+A Lei de Acesso à Informação (LAI) consolidou juridicamente a transparência governamental no Brasil, mas estudos mostram que publicar dados não resulta automaticamente em \textit{accountability} efetiva \cite{pinho2009accountability}. A participação qualificada é limitada pela dificuldade de cidadãos em decifrar linguagem técnico-burocrática e cruzar informações dispersas em múltiplas fontes \cite{marco2022transparencia}.
+
+Paulo Freire argumenta que a democratização do conhecimento exige mediações que tornem o conteúdo acessível: a ``conscientização'' refere-se à capacidade de ``ler o mundo'' criticamente, superando a passividade diante de estruturas opressivas \cite{freire1967liberdade,freire1996autonomia}. No contexto orçamentário, isso implica que cidadãos precisam não apenas acessar dados, mas compreender seu significado, identificar padrões e formular perguntas sobre a aplicação de recursos. A organização informacional não é, portanto, neutra: a forma como dados são estruturados condiciona quem pode compreendê-los e, consequentemente, quem pode exercer controle efetivo sobre o Estado.
+
+\section{Data Warehouse e Modelagem Dimensional}
+
+O \textit{Data Warehouse} é um repositório estruturado para suporte à decisão, caracterizado por quatro propriedades fundamentais: orientado a assunto, integrado, não-volátil e variável no tempo \cite{kimball2013data}. Orientado a assunto significa que os dados são organizados em torno de temas relevantes para análise (como despesas ou receitas), e não em torno de processos transacionais. Integrado indica que dados provenientes de fontes heterogêneas são consolidados sob convenções uniformes. Não-volátil refere-se ao fato de que dados carregados não são alterados, apenas acrescentados. Variável no tempo indica que o histórico é preservado, permitindo análises temporais.
+
+A modelagem dimensional, consolidada pela metodologia de Ralph Kimball e Margy Ross, prioriza a usabilidade das consultas por meio do esquema estrela (\textit{star schema}): tabelas de fatos armazenam métricas quantitativas (como valores empenhados, liquidados e pagos) e tabelas de dimensões fornecem contexto descritivo (como tempo, órgão, função, programa e favorecido). Essa estrutura permite que perguntas analíticas sejam formuladas de maneira intuitiva, sem exigir conhecimento técnico de modelagem relacional.
+
+Quando combinados com \textit{dashboards} interativos, os \textit{Data Warehouses} transformam milhares de linhas de planilhas em visualizações que facilitam a interpretação cidadã, atuando como mediação tecnológica entre dados brutos e controle social efetivo. A capacidade de responder perguntas como ``qual secretaria concentrou mais recursos no último exercício?'' ou ``como evoluiu o gasto em saúde nos últimos cinco anos?'' representa, em termos freireanos, a viabilização de uma nova forma de leitura crítica do mundo --- agora mediada por dados públicos estruturados e acessíveis.

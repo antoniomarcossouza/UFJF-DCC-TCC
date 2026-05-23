@@ -1,0 +1,46 @@
+\chapter{Metodologia}
+
+A metodologia desta pesquisa estrutura-se em quatro etapas complementares, que cobrem desde a fundamentação teórica até a aplicação prática e avaliação do modelo proposto:
+
+\begin{enumerate}
+    \item \textbf{Pesquisa Bibliográfica:} Revisão de literatura sobre orçamento público, classificação de receitas e despesas, transparência governamental, controle social, modelagem dimensional e \textit{data warehousing}. Esta etapa fundamenta as escolhas técnicas e teóricas do trabalho e orienta a interpretação dos resultados.
+
+    \item \textbf{Pesquisa Documental:} Coleta e análise de dados brutos disponibilizados pelo Portal da Transparência da Prefeitura de Juiz de Fora. Inclui o mapeamento das fontes disponíveis (planilhas, relatórios, APIs), a identificação de inconsistências e a documentação das limitações encontradas na publicação dos dados.
+
+    \item \textbf{Desenvolvimento Técnico do DW:} Modelagem dimensional da execução orçamentária segundo a metodologia Kimball, com mapeamento das classificações oficiais (MCASP/MTO) em fatos e dimensões. Implementação dos processos de ETL (\textit{Extract, Transform, Load}) para extração, limpeza, transformação e carga dos dados, tratando heterogeneidades de formato e nomenclatura. Construção de \textit{dashboards} interativos com indicadores como execução orçamentária por área, gasto per capita e concentração de fornecedores.
+
+    \item \textbf{Estudo de Caso:} Aplicação do modelo proposto ao caso concreto de Juiz de Fora, com documentação dos desafios técnicos encontrados e avaliação da usabilidade das visualizações produzidas em comparação ao formato original dos dados. Esta etapa busca refletir sobre o papel da arquitetura de dados na democratização da informação pública.
+\end{enumerate}
+
+\section{Cronograma}
+
+As atividades previstas para o desenvolvimento deste trabalho distribuem-se ao longo de 2025 e 2026, conforme detalhado abaixo:
+
+\begin{enumerate}
+    \item Levantamento bibliográfico.
+    \item Extração de dados e início da limpeza de dados.
+    \item Criação do modelo dimensional.
+    \item Desenvolvimento do \textit{dashboard}.
+    \item Redação do TCC.
+    \item Revisão da monografia e defesa.
+\end{enumerate}
+
+\begin{table}[htb]
+  \renewcommand{\arraystretch}{1.1}
+  \caption{Cronograma de atividades}
+  \label{tab:cronograma}
+  \centering
+  \begin{tabular}{ccccccc}
+    \hline
+    & \multicolumn{5}{c}{\textbf{2025}} & \multicolumn{1}{c}{\textbf{2026}} \\
+    & \textit{fev} & \textit{mar} & \textit{abr} & \textit{mai} & \textit{jun} & \textit{jul} \\
+    \hline
+    01 & $\bullet$ & $\bullet$ & $\bullet$ &            &            &            \\ \hline
+    02 &            & $\bullet$ & $\bullet$ &            &            &            \\ \hline
+    03 &            &            & $\bullet$ & $\bullet$ &            &            \\ \hline
+    04 &            &            &            & $\bullet$ & $\bullet$ &            \\ \hline
+    05 &            &            &            & $\bullet$ & $\bullet$ &            \\ \hline
+    06 &            &            &            &            &            & $\bullet$ \\
+    \hline
+  \end{tabular}
+\end{table}
