@@ -15,9 +15,9 @@ Em registro complementar, \citeonline{souza2025transparencia} reúnem evidência
 
 \section{Data Warehouse Aplicado a Dados Governamentais}
 
-A aplicação de Data Warehouse a dados públicos é menos documentada na literatura acadêmica brasileira do que se poderia esperar. A obra de referência de \citeonline{kimball2013data} oferece a metodologia, mas trata de casos majoritariamente empresariais. As propriedades que definem o DW (orientação a assunto, integração, não volatilidade e variação no tempo) traduzem-se sem dificuldade para o contexto orçamentário, porém os exemplos clássicos da bibliografia raramente partem de dados públicos.
+A aplicação de Data Warehouse a dados públicos é menos documentada na literatura acadêmica brasileira do que se poderia esperar. A referência canônica da área é \textit{The Data Warehouse Toolkit}, livro publicado originalmente por Ralph Kimball nos Estados Unidos em 1996 \cite{kimball2013data}. A obra consolidou a modelagem dimensional como metodologia padrão para projetos de \textit{Business Intelligence} em escala internacional. Os exemplos discutidos pelos autores partem em sua maioria de aplicações comerciais: varejo, transporte, telecomunicações, gestão financeira corporativa. Esse recorte original se reflete na produção científica brasileira sobre o tema: trabalhos acadêmicos nacionais sobre DW concentram-se em aplicações empresariais e raramente discutem adaptações da modelagem dimensional à casos aplicados em dados públicos. As quatro propriedades clássicas que definem o DW (orientação a assunto, integração, não volatilidade e variação no tempo) traduzem-se sem dificuldade para o caso do orçamento público, mas as decisões de granularidade, de classificação e de tratamento de inconsistências típicas do setor público encontram pouca discussão sistematizada na bibliografia disponível em português.
 
-Na prática, projetos internacionais como o Open Spending, mantido pela Open Knowledge Foundation, mostraram nas duas últimas décadas a viabilidade de consolidar orçamentos públicos em estruturas analíticas reutilizáveis. O projeto agrega dados orçamentários de centenas de instituições em formato padronizado, oferecendo visualizações e API. A escolha de modelo de dados, no entanto, é genérica e não captura especificidades da contabilidade pública brasileira (PPA, LDO, LOA, classificação MCASP). Para usuários brasileiros, isso significa que o Open Spending é referência arquitetural útil, mas exige adaptação substancial para responder às perguntas que importam aqui.
+Fora do Brasil, alguns projetos práticos consolidaram orçamentos públicos em estruturas analíticas reutilizáveis. O mais conhecido é o Open Spending, iniciativa global mantida pela Open Knowledge Foundation. Ativo desde o início dos anos 2010, o projeto agrega orçamentos de instituições públicas de diversos países sob um esquema padronizado e oferece visualizações e API. A opção por um modelo de dados genérico foi deliberada, para acomodar a heterogeneidade dos sistemas orçamentários nacionais, e implica perda de especificidade ao tratar do caso brasileiro: a estrutura tripartite PPA-LDO-LOA, a classificação MCASP por elemento de despesa e a sequência empenho-liquidação-pagamento não têm correspondência direta no esquema. Para um usuário brasileiro, o Open Spending é referência arquitetural útil, mas exige adaptação substancial para responder às perguntas que importam ao contexto contábil nacional.
 
 A literatura internacional sobre o tema introduz, ainda, o conceito de \textit{citizens' budget} como prática complementar ao DW. \citeonline{bilge2015citizens} descreve esse instrumento como uma versão simplificada e explicativa do orçamento público, voltada ao cidadão não especialista, e cataloga sua adoção em países como Estados Unidos, Reino Unido, África do Sul e Filipinas. O ponto importante para esta pesquisa não é o documento simplificado em si, mas o reconhecimento, em escala internacional, de que a intelegibilidade orçamentária é um problema de \textit{design} de informação, e não apenas de publicação. A solução proposta aqui via DW se distingue por permitir interação analítica em vez de leitura passiva de um relatório resumido.
 
@@ -34,25 +34,5 @@ Esse tipo de iniciativa costuma ter vida útil ligada à dedicação de voluntá
 \section{Posicionamento desta Pesquisa}
 
 Em relação aos trabalhos discutidos, esta pesquisa se diferencia em quatro pontos. Primeiro, o recorte municipal específico: Juiz de Fora, com a granularidade dos dados realmente publicados pela prefeitura. Segundo, a integração entre receitas e despesas em um único modelo dimensional, raramente feita em sistemas existentes. Terceiro, a documentação explícita das inconsistências encontradas nas fontes, tratada como achado de pesquisa e não como ruído a ser silenciosamente corrigido. Quarto, a articulação teórica com a tradição freireana de educação libertadora, que ancora a justificativa do projeto em algo além da eficiência técnica.
-
-A Tabela~\ref{tab:posicionamento} resume essa comparação.
-
-\begin{table}[htb]
-\caption{Posicionamento desta pesquisa frente aos trabalhos relacionados}
-\label{tab:posicionamento}
-\centering
-\small
-\begin{tabular}{p{3.2cm} p{2.0cm} p{2.0cm} p{2.0cm} p{2.0cm}}
-\hline
-\textbf{Característica} & \textbf{Índices de transparência} & \textbf{Painel CGU/Tesouro} & \textbf{\textit{Civic tech}} & \textbf{Este trabalho} \\
-\hline
-Foco municipal & Sim & Não & Variável & Sim \\
-Modelo dimensional explícito & Não & Parcial & Não & Sim \\
-Integração receita+despesa & Não & Sim & Não & Sim \\
-Documentação de inconsistências & Não & Não & Parcial & Sim \\
-Fundamentação freireana & Não & Não & Não & Sim \\
-\hline
-\end{tabular}
-\end{table}
 
 O capítulo seguinte detalha a metodologia adotada para concretizar essas diferenças no caso de Juiz de Fora.
