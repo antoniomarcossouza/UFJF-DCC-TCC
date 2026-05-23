@@ -1,29 +1,40 @@
 \chapter{Metodologia}
+\label{cap:metodologia}
 
-A metodologia desta pesquisa estrutura-se em quatro etapas complementares, que cobrem desde a fundamentação teórica até a aplicação prática e avaliação do modelo proposto:
+A pesquisa combina revisão de literatura, análise documental e desenvolvimento técnico. Cada etapa alimenta a seguinte e nenhuma vive em separado das demais. A escolha por essa combinação responde à natureza do problema: não basta entender a teoria do controle social, nem basta saber construir um Data Warehouse. É preciso fazer os dois conversarem em um caso concreto, com dados reais e suas inconsistências.
 
-\begin{enumerate}
-    \item \textbf{Pesquisa Bibliográfica:} Revisão de literatura sobre orçamento público, classificação de receitas e despesas, transparência governamental, controle social, modelagem dimensional e \textit{data warehousing}. Esta etapa fundamenta as escolhas técnicas e teóricas do trabalho e orienta a interpretação dos resultados.
+\section{Etapas da Pesquisa}
 
-    \item \textbf{Pesquisa Documental:} Coleta e análise de dados brutos disponibilizados pelo Portal da Transparência da Prefeitura de Juiz de Fora. Inclui o mapeamento das fontes disponíveis (planilhas, relatórios, APIs), a identificação de inconsistências e a documentação das limitações encontradas na publicação dos dados.
+\subsection*{Pesquisa Bibliográfica}
 
-    \item \textbf{Desenvolvimento Técnico do DW:} Modelagem dimensional da execução orçamentária segundo a metodologia Kimball, com mapeamento das classificações oficiais (MCASP/MTO) em fatos e dimensões. Implementação dos processos de ETL (\textit{Extract, Transform, Load}) para extração, limpeza, transformação e carga dos dados, tratando heterogeneidades de formato e nomenclatura. Construção de \textit{dashboards} interativos com indicadores como execução orçamentária por área, gasto per capita e concentração de fornecedores.
+A revisão de literatura cobre quatro frentes que se cruzam neste trabalho: orçamento público brasileiro (instrumentos, classificações e estágios da despesa), transparência governamental e controle social, modelagem dimensional segundo Kimball e Ross, e \textit{civic tech} aplicada a dados públicos. A bibliografia orienta as decisões teóricas e fornece o vocabulário para interpretar os resultados. A relação entre literatura técnica e literatura sociopolítica é uma escolha deliberada e estabelece a tese central do trabalho: arquitetura de dados é objeto político.
 
-    \item \textbf{Estudo de Caso:} Aplicação do modelo proposto ao caso concreto de Juiz de Fora, com documentação dos desafios técnicos encontrados e avaliação da usabilidade das visualizações produzidas em comparação ao formato original dos dados. Esta etapa busca refletir sobre o papel da arquitetura de dados na democratização da informação pública.
-\end{enumerate}
+\subsection*{Pesquisa Documental}
+
+A análise documental tem como base o Portal da Transparência da Prefeitura de Juiz de Fora. Inclui o mapeamento das fontes disponíveis (planilhas, relatórios, APIs quando existem), o catálogo de campos por tipo de dado e a documentação das limitações encontradas. As inconsistências detectadas (campos ausentes, encoding inconsistente, mudanças de layout entre anos, registros duplicados) são tratadas como achados de pesquisa, não como ruído a ser silenciosamente corrigido. A honestidade sobre a qualidade dos dados é parte do trabalho.
+
+\subsection*{Desenvolvimento Técnico do Data Warehouse}
+
+O desenvolvimento segue a metodologia de Kimball em quatro passos: identificação dos processos de negócio (execução orçamentária de despesas e de receitas), definição da granularidade, identificação das dimensões relevantes (tempo, unidade administrativa, função programática, natureza da despesa, natureza da receita, fornecedor, fonte de recurso) e identificação dos fatos (valores empenhado, liquidado e pago para despesa; previsto e arrecadado para receita). A pilha técnica combina Dagster para orquestração, Python e \texttt{pandas} para extração, DuckDB como banco analítico embarcado, dbt para a modelagem em SQL e Streamlit para os \textit{dashboards}. As decisões técnicas detalhadas vivem no Capítulo~\ref{cap:dw}.
+
+\subsection*{Estudo de Caso}
+
+A aplicação do modelo a Juiz de Fora cumpre dois papéis. Primeiro, valida o modelo dimensional proposto: se o esquema responde às perguntas do mundo real, ele serve. Segundo, produz documentação dos desafios técnicos encontrados em um município específico, oferecendo referência para futuras adaptações em outras cidades. A escolha de Juiz de Fora não é casual e responde tanto à vinculação institucional do trabalho (UFJF) quanto à existência de portal municipal ativo com dados publicados em formatos minimamente analisáveis.
 
 \section{Cronograma}
 
-As atividades previstas para o desenvolvimento deste trabalho distribuem-se ao longo de 2025 e 2026, conforme detalhado abaixo:
+As atividades distribuem-se ao longo de 2025 e 2026, em seis etapas principais:
 
 \begin{enumerate}
     \item Levantamento bibliográfico.
-    \item Extração de dados e início da limpeza de dados.
+    \item Extração de dados e início da limpeza.
     \item Criação do modelo dimensional.
-    \item Desenvolvimento do \textit{dashboard}.
+    \item Desenvolvimento dos \textit{dashboards}.
     \item Redação do TCC.
     \item Revisão da monografia e defesa.
 \end{enumerate}
+
+A Tabela~\ref{tab:cronograma} detalha a distribuição temporal das atividades.
 
 \begin{table}[htb]
   \renewcommand{\arraystretch}{1.1}
