@@ -9,8 +9,7 @@ from dashboard.utils.formatting import fmt_brl, fmt_brl_compact, fmt_pct
 
 def kpi_row(
     items: list[
-        tuple[str, str, str | None]
-        | tuple[str, str, str | None, str | None]
+        tuple[str, str, str | None] | tuple[str, str, str | None, str | None]
     ],
 ) -> None:
     """KPIs: (label, value, help) ou (label, value, help, delta)."""

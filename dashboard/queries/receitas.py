@@ -10,9 +10,7 @@ from dashboard.queries.filters import (
 )
 
 
-def _receita_where_so_natureza(
-    filters: FilterState, params: list
-) -> str:
+def _receita_where_so_natureza(filters: FilterState, params: list) -> str:
     """WHERE de receita apenas com filtro de natureza (sem ano/mês)."""
     flt = FilterState(sk_naturezas_receita=filters.sk_naturezas_receita)
     return build_receita_where(flt, params)

@@ -121,11 +121,7 @@ def insight_saldo_fiscal(
     saldo: float | None,
 ) -> str:
     """Resumo se arrecadação cobre pagamentos no recorte."""
-    if (
-        arrecadacao is None
-        or pagamentos is None
-        or saldo is None
-    ):
+    if arrecadacao is None or pagamentos is None or saldo is None:
         return (
             "Saldo fiscal não calculado: faltam arrecadação, pagamentos ou "
             "ambos no recorte dos filtros."
@@ -227,16 +223,10 @@ def insight_eficiencia_execucao(
             "Indicadores de eficiência (liquidado/pago sobre empenhado) "
             "indisponíveis — empenho total pode ser zero."
         )
-    pl = (
-        fmt_pct(pct_liq_emp, decimals=1) if pct_liq_emp is not None else "—"
-    )
-    pe = (
-        fmt_pct(pct_pago_emp, decimals=1) if pct_pago_emp is not None else "—"
-    )
+    pl = fmt_pct(pct_liq_emp, decimals=1) if pct_liq_emp is not None else "—"
+    pe = fmt_pct(pct_pago_emp, decimals=1) if pct_pago_emp is not None else "—"
     plq = (
-        fmt_pct(pct_pago_liq, decimals=1)
-        if pct_pago_liq is not None
-        else "—"
+        fmt_pct(pct_pago_liq, decimals=1) if pct_pago_liq is not None else "—"
     )
     partes: list[str] = [
         f"liquidado sobre empenhado: {pl}",
@@ -251,8 +241,7 @@ def insight_eficiencia_execucao(
         and pct_liq_emp >= 80.0
     ):
         return (
-            texto
-            + " Muito liquidado com pouco pago pode indicar fila de "
+            texto + " Muito liquidado com pouco pago pode indicar fila de "
             "pagamentos ou atraso."
         )
     return texto

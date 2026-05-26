@@ -57,8 +57,7 @@ def download_xlsx(
         data=buf.getvalue(),
         file_name=filename,
         mime=(
-            "application/vnd.openxmlformats-officedocument."
-            "spreadsheetml.sheet"
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ),
         key=key,
     )

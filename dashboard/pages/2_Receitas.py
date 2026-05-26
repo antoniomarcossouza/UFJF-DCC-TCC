@@ -91,20 +91,12 @@ if not df_pref.empty:
     )
     totais_origem = nc.aggregate_vl_por_origem(list(pairs))
 total_para_share = sum(max(0.0, v) for v in totais_origem.values()) or 0.0
-pct_fed = pct(
-    totais_origem.get("transf_federais", 0.0), total_para_share
-)
-pct_est = pct(
-    totais_origem.get("transf_estaduais", 0.0), total_para_share
-)
+pct_fed = pct(totais_origem.get("transf_federais", 0.0), total_para_share)
+pct_est = pct(totais_origem.get("transf_estaduais", 0.0), total_para_share)
 candidatos = {
-    k: v
-    for k, v in totais_origem.items()
-    if k != "deducoes" and v > 0
+    k: v for k, v in totais_origem.items() if k != "deducoes" and v > 0
 }
-principal_key = (
-    max(candidatos, key=candidatos.get) if candidatos else None
-)
+principal_key = max(candidatos, key=candidatos.get) if candidatos else None
 pct_principal = (
     pct(candidatos[principal_key], total_para_share)
     if principal_key and total_para_share > 0
@@ -165,9 +157,7 @@ with c5:
 
 bullets = [insight_execucao(vl_arr_ano, vl_prev, exec_pct)]
 if principal_key:
-    bullets.append(
-        insight_principal_fonte(label_principal, pct_principal)
-    )
+    bullets.append(insight_principal_fonte(label_principal, pct_principal))
 narrative_ui.insight_bullets(bullets)
 
 st.divider()
@@ -283,10 +273,7 @@ st.markdown('<a id="receitas-s4"></a>', unsafe_allow_html=True)
 st.subheader("4. Previsto vs realizado")
 pi_label, pi_desc = termo("previsao_atualizada")
 rr_label, rr_desc = termo("receita_realizada")
-st.markdown(
-    f"**{pi_label}** — {pi_desc}  \n"
-    f"**{rr_label}** — {rr_desc}"
-)
+st.markdown(f"**{pi_label}** — {pi_desc}  \n**{rr_label}** — {rr_desc}")
 if vl_prev is not None and vl_arr_ano is not None:
     progress.previsto_realizado_bar(
         vl_arr_ano,

@@ -64,9 +64,7 @@ def normalize_col_name(col: str) -> str:
     return re.sub(r"\s+", " ", no_accents)
 
 
-def read_ementario_natureza_receita(
-    filepath: Path, year: int
-) -> pd.DataFrame:
+def read_ementario_natureza_receita(filepath: Path, year: int) -> pd.DataFrame:
     xls = pd.ExcelFile(filepath)
     sheet_name = next(
         (
