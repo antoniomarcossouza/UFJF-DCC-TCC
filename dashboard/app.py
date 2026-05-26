@@ -7,14 +7,15 @@ from pathlib import Path
 
 import streamlit as st
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
 from dashboard.components.disclaimers import render_data_coverage
 from dashboard.components.filters import render_sidebar_filters
 from dashboard.queries import schema
 from dashboard.utils.db import get_db_path, run_query
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 
 st.set_page_config(
     page_title="Execução Orçamentária Municipal",

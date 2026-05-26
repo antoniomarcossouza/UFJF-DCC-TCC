@@ -121,9 +121,7 @@ if (
 narrative_ui.insight_bullets(
     [
         insight_estagios_despesa(vl_emp, vl_liq, vl_pago),
-        insight_eficiencia_execucao(
-            pct_liq_emp, pct_pago_emp, pct_pago_liq
-        ),
+        insight_eficiencia_execucao(pct_liq_emp, pct_pago_emp, pct_pago_liq),
     ]
 )
 

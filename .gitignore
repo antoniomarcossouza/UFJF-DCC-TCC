@@ -11,6 +11,9 @@ target/
 dbt_packages/
 logs/
 .user.yml
+
+.cursor/
+
 # LaTeX
 *.aux
 *.bit

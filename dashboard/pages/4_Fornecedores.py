@@ -55,9 +55,7 @@ if not df_rank.empty:
     nm = str(top["nm_fornecedor"]).strip() if top["nm_fornecedor"] else ""
     if not nm:
         nm = str(top["cd_cpf_cnpj"])
-    pct_top = (
-        float(top["pct_total"]) if top["pct_total"] is not None else None
-    )
+    pct_top = float(top["pct_total"]) if top["pct_total"] is not None else None
     vl_top = float(top["vl_pago"])
     total_geral = None
     if pct_top is not None and pct_top > 0:
@@ -107,9 +105,7 @@ st.markdown('<a id="fornecedores-s2"></a>', unsafe_allow_html=True)
 st.subheader("2. Concentração de pagamentos")
 if not df_rank.empty:
     _, pareto_explicacao = termo("pareto")
-    st.markdown(
-        f"**O que é a curva de Pareto?** {pareto_explicacao}"
-    )
+    st.markdown(f"**O que é a curva de Pareto?** {pareto_explicacao}")
     df_rank["label"] = df_rank["nm_fornecedor"].fillna(df_rank["cd_cpf_cnpj"])
     charts.bar_horizontal(
         df_rank.head(15),

@@ -117,8 +117,7 @@ if not df_func.empty:
     total_f = float(df_func["vl_pago"].sum())
     pct_f = pct_safe(float(row_f["vl_pago"]), total_f)
     label_f = (
-        f"{nome_funcao(str(row_f['cd_funcao']))} / sub "
-        f"{row_f['cd_subfuncao']}"
+        f"{nome_funcao(str(row_f['cd_funcao']))} / sub {row_f['cd_subfuncao']}"
     )
     narrative_ui.insight_box(
         insight_top_funcao(label_f, float(row_f["vl_pago"]), pct_f),

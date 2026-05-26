@@ -84,8 +84,7 @@ def overwrite_partition_in_duckdb(
             """)
 
         conn.execute(
-            f"delete from {qualified_table} "
-            f"where {q_partition_col} = ?",
+            f"delete from {qualified_table} where {q_partition_col} = ?",
             [partition_value],
         )
 
