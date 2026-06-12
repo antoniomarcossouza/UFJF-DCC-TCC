@@ -1,0 +1,14 @@
+.venv
+.git
+__pycache__
+.tmp_dagster_*/
+monografia
+dashboard
+references
+*.pdf
+target
+dbt_packages
+logs
+data
+.pytest_cache
+.ruff_cache

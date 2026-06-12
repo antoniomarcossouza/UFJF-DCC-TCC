@@ -4,14 +4,8 @@ uv_venv:
 dev_install: uv_venv
 	uv sync --extra dev
 
-dev: dev_install
+dg: dev_install
 	uv run dg dev
-
-ruff: dev_install
-	uv run --extra dev ruff check .
 
 dashboard: dev_install
 	uv run streamlit run dashboard/app.py
-
-dashboard-test: dev_install
-	uv run pytest dashboard/tests -q

@@ -1,5 +1,6 @@
 __pycache__/
 .tmp_dagster_*/
+.dagster/
 .venv/
 .vscode/
 

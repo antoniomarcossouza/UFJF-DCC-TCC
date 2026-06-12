@@ -1,0 +1,34 @@
+FROM python:3.13-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+WORKDIR /opt/dagster/app
+
+COPY pyproject.toml uv.lock ./
+COPY execucao_orcamentaria/ execucao_orcamentaria/
+COPY execucao_orcamentaria_dbt/ execucao_orcamentaria_dbt/
+
+ARG DAGSTER_LIBS_VERSION=0.28.20
+
+RUN uv sync --frozen --no-dev \
+    && uv pip install \
+        dagster-postgres==${DAGSTER_LIBS_VERSION} \
+        dagster-docker==${DAGSTER_LIBS_VERSION}
+
+ENV PATH="/opt/dagster/app/.venv/bin:$PATH"
+ENV DUCKDB_PATH=/opt/dagster/app/data/execucao_orcamentaria.duckdb
+
+RUN mkdir -p data \
+    && cd execucao_orcamentaria_dbt \
+    && dbt deps --profiles-dir .
+
+EXPOSE 4000
+
+HEALTHCHECK --timeout=1s --start-period=3s --interval=3s --retries=20 \
+  CMD ["dagster", "api", "grpc-health-check", "-p", "4000"]
+
+CMD ["dagster", "code-server", "start", "-h", "0.0.0.0", "-p", "4000", "-f", "execucao_orcamentaria/definitions.py"]
