@@ -1,0 +1,102 @@
+services:
+  ufjf_tcc_postgresql:
+    image: postgres:16-alpine
+    container_name: ufjf_tcc_postgresql
+    environment:
+      POSTGRES_USER: dagster
+      POSTGRES_PASSWORD: dagster
+      POSTGRES_DB: dagster
+    networks:
+      - ufjf_tcc_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dagster -d dagster"]
+      interval: 10s
+      timeout: 8s
+      retries: 5
+
+  ufjf_tcc_user_code:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_user_code
+    image: ufjf_tcc_user_code_image
+    container_name: ufjf_tcc_user_code
+    restart: always
+    environment:
+      DAGSTER_POSTGRES_USER: dagster
+      DAGSTER_POSTGRES_PASSWORD: dagster
+      DAGSTER_POSTGRES_DB: dagster
+      DAGSTER_POSTGRES_HOST: ufjf_tcc_postgresql
+      DAGSTER_CURRENT_IMAGE: ufjf_tcc_user_code_image
+      DUCKDB_PATH: /opt/dagster/app/data/execucao_orcamentaria.duckdb
+    volumes:
+      - ufjf_tcc_data:/opt/dagster/app/data
+    networks:
+      - ufjf_tcc_network
+
+  ufjf_tcc_webserver:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_dagster
+    container_name: ufjf_tcc_webserver
+    entrypoint:
+      - dagster-webserver
+      - -h
+      - "0.0.0.0"
+      - -p
+      - "3000"
+      - -w
+      - workspace.yaml
+    ports:
+      - "3000:3000"
+    environment: &dagster_host_env
+      DAGSTER_POSTGRES_USER: dagster
+      DAGSTER_POSTGRES_PASSWORD: dagster
+      DAGSTER_POSTGRES_DB: dagster
+      DAGSTER_POSTGRES_HOST: ufjf_tcc_postgresql
+      DUCKDB_PATH: /opt/dagster/app/data/execucao_orcamentaria.duckdb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ufjf_tcc_data:/opt/dagster/app/data
+    networks:
+      - ufjf_tcc_network
+    depends_on:
+      ufjf_tcc_postgresql:
+        condition: service_healthy
+      ufjf_tcc_user_code:
+        condition: service_healthy
+
+  ufjf_tcc_daemon:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_dagster
+    container_name: ufjf_tcc_daemon
+    restart: on-failure
+    entrypoint:
+      - dagster-daemon
+      - run
+    environment:
+      <<: *dagster_host_env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ufjf_tcc_data:/opt/dagster/app/data
+    networks:
+      - ufjf_tcc_network
+    depends_on:
+      ufjf_tcc_postgresql:
+        condition: service_healthy
+      ufjf_tcc_user_code:
+        condition: service_started
+
+networks:
+  ufjf_tcc_network:
+    driver: bridge
+    name: ufjf_tcc_network
+
+volumes:
+  ufjf_tcc_data:
+    name: ufjf_tcc_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data
