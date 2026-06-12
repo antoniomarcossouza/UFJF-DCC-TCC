@@ -9,3 +9,7 @@ dg: dev_install
 
 dashboard: dev_install
 	uv run streamlit run dashboard/app.py
+
+dbt-%:
+	uv run dbt run --project-dir execucao_orcamentaria_dbt --profiles-dir execucao_orcamentaria_dbt --select $*
+	uv run dbt test --project-dir execucao_orcamentaria_dbt --profiles-dir execucao_orcamentaria_dbt --select $*
