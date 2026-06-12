@@ -65,6 +65,21 @@ services:
       ufjf_tcc_user_code:
         condition: service_healthy
 
+  ufjf_tcc_streamlit:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_streamlit
+    container_name: ufjf_tcc_streamlit
+    restart: always
+    environment:
+      DUCKDB_PATH: /opt/dagster/app/data/execucao_orcamentaria.duckdb
+    volumes:
+      - ufjf_tcc_data:/opt/dagster/app/data
+    ports:
+      - "8501:8501"
+    networks:
+      - ufjf_tcc_network
+
   ufjf_tcc_daemon:
     build:
       context: .
