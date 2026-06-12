@@ -45,7 +45,7 @@ EXPECTED_COLUMNS: dict[str, list[str]] = {
         "cd_natureza_receita",
         "ds_natureza_receita",
     ],
-    "dim_natureza_despeza": [
+    "dim_natureza_despesa": [
         "sk_natureza_despesa",
         "cd_natureza_despesa",
         "ds_natureza_despesa",
@@ -54,20 +54,6 @@ EXPECTED_COLUMNS: dict[str, list[str]] = {
         "sk_funcional_pragmatica",
         "cd_funcional_pragmatica",
         "ds_funcional_pragmatica",
-    ],
-    "dim_funcional_mcasp": [
-        "sk_funcional_mcasp",
-        "cd_funcao",
-        "cd_subfuncao",
-        "cd_funcional_mcasp",
-        "cd_programa",
-        "cd_acao",
-        "cd_subprojeto",
-        "ds_funcao",
-        "ds_subfuncao",
-        "ds_programa",
-        "ds_acao",
-        "ds_subprojeto",
     ],
     "dim_fornecedor": [
         "sk_fornecedor",
@@ -82,10 +68,6 @@ EXPECTED_COLUMNS: dict[str, list[str]] = {
         "sk_fonte_recurso",
         "cd_fonte_recurso",
         "ds_fonte_recurso",
-    ],
-    "funcional_pragmatica": [
-        "cd_funcional_pragmatica",
-        "ds_funcional_pragmatica",
     ],
 }
 

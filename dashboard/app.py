@@ -10,7 +10,7 @@ import streamlit as st
 from dashboard.components.disclaimers import render_data_coverage
 from dashboard.components.filters import render_sidebar_filters
 from dashboard.queries import schema
-from dashboard.utils.db import get_db_path, run_query
+from dashboard.utils.db import run_query
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -29,7 +29,6 @@ filters = render_sidebar_filters()
 st.title("Execução Orçamentária Municipal")
 st.markdown(
     "Dashboard analítico de **receitas** e **despesas** "
-    f"(fonte: `{get_db_path()}`)."
 )
 
 cols_df = run_query(*schema.introspect_tables_sql())

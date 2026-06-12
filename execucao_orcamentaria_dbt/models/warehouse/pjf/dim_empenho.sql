@@ -13,3 +13,4 @@ Legal" as ds_referencia_legal,
     processo as cd_processo,
     descrição as ds_empenho
 from {{ ref('stg_pjf_despesa_mensal_consolidada') }}
+qualify row_number() over (partition by sk_empenho order by dt_atualizacao desc) = 1
