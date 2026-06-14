@@ -1,11 +1,11 @@
 \chapter{Modelagem e Implementação do Data Warehouse}
 \label{cap:dw}
 
-Este capítulo documenta as decisões técnicas adotadas na construção do DW para a execução orçamentária de Juiz de Fora. A apresentação segue o caminho dos dados: parte das fontes públicas, passa por extração, \textit{staging}, modelagem dimensional e termina na camada analítica que alimenta os \textit{dashboards}. O texto privilegia decisões e justificativas, não exaustividade de código. Snippets aparecem quando ilustram um ponto.
+Este capítulo registra as decisões técnicas na construção do DW para a execução orçamentária de Juiz de Fora. A ordem de exposição acompanha o fluxo dos dados: fontes públicas, extração, \textit{staging}, modelagem dimensional e camada analítica que alimenta os \textit{dashboards}. O foco recai sobre escolhas e seus motivos, não sobre exaustividade de código. Trechos de implementação entram quando ajudam a fixar um ponto concreto.
 
 \section{Visão Geral da Arquitetura}
 
-O sistema se organiza em quatro camadas, mostradas na Figura~\ref{fig:arquitetura-dw}: extração, \textit{staging}, \textit{warehouse} dimensional e consumo via \textit{dashboards}. A separação física dessas camadas responde a um princípio simples. Cada camada tem uma responsabilidade clara e pode ser reexecutada de forma independente, o que reduz acoplamento entre código de coleta, lógica de negócio e apresentação.
+O sistema se organiza em quatro camadas, mostradas na Figura~\ref{fig:arquitetura-dw}: extração, \textit{staging}, \textit{warehouse} dimensional e consumo via \textit{dashboards}. Separar fisicamente essas camadas responde a uma exigência operacional: cada uma tem função definida e pode ser reexecutada sem arrastar as demais. Coleta, regra de negócio e apresentação ficam desacopladas. Quando o portal muda o \textit{layout} de uma planilha, o ajuste tende a ficar confinado à extração e ao \textit{staging}, sem reescrever consultas analíticas.
 
 \begin{figure}[ht]
 \begin{center}
@@ -41,11 +41,11 @@ $\downarrow$ \\
 \end{center}
 \end{figure}
 
-A arquitetura segue de perto o padrão \textit{medallion} (\textit{bronze}/\textit{silver}/\textit{gold}), mas com adaptações. Os arquivos brutos vivem em \texttt{data/}, fora do banco. As tabelas brutas e as \textit{views} de \textit{staging} compartilham o \textit{schema} \texttt{stg}: as primeiras escritas por Dagster, as segundas geradas por dbt. O \textit{warehouse} dimensional ocupa o \textit{schema} \texttt{dwh}. Essa divisão por \textit{schema} torna explícito o limite entre dado bruto e dado modelado e simplifica a evolução do projeto: alterar uma transformação não exige reprocessar a extração.
+A arquitetura segue de perto o padrão \textit{medallion} (\textit{bronze}/\textit{silver}/\textit{gold}), com adaptações locais. Os arquivos brutos ficam em \texttt{data/}, fora do banco. Tabelas brutas e \textit{views} de \textit{staging} compartilham o \textit{schema} \texttt{stg}: Dagster escreve as primeiras, dbt gera as segundas. O \textit{warehouse} dimensional ocupa o \textit{schema} \texttt{dwh}. A divisão por \textit{schema} deixa visível a fronteira entre dado bruto e dado modelado. Alterar uma transformação dbt não obriga a baixar de novo planilhas do portal.
 
 \section{Stack Tecnológico}
 
-A pilha técnica foi escolhida priorizando reprodutibilidade local, simplicidade de \textit{deploy} e ferramentas de uso consolidado em engenharia de dados. A Tabela~\ref{tab:stack} resume os componentes.
+A pilha foi montada para rodar em máquina local, com \textit{deploy} simples e ferramentas já difundidas em engenharia de dados. Para um TCC com uma pessoa na implementação, isso pesa tanto quanto desempenho bruto: quem for reproduzir o trabalho precisa conseguir subir o ambiente sem contratar infraestrutura. A Tabela~\ref{tab:stack} resume os componentes.
 
 \begin{table}[htb]
 \caption{Pilha técnica utilizada no Data Warehouse}
@@ -71,51 +71,51 @@ pytest & 9.0 & Testes da camada de \textit{dashboard} \\
 \end{tabular}
 \end{table}
 
-A escolha por DuckDB merece justificativa. Sistemas de DW clássicos costumam ser PostgreSQL, BigQuery ou Snowflake. DuckDB ocupa nicho diferente: é um banco analítico em processo, sem servidor, com formato colunar otimizado para consultas agregadas. Para um projeto de escopo municipal e equipe de uma pessoa, três propriedades pesaram a favor. Primeiro, ausência de infraestrutura: o banco é um arquivo (\texttt{data/execucao\_orcamentaria.duckdb}). Segundo, performance de leitura analítica equiparável a soluções pagas para volumes na casa de milhões de linhas. Terceiro, integração nativa com \texttt{pandas} e Arrow, o que simplifica a movimentação entre código Python e SQL. A contrapartida é a ausência de servidor multi-usuário, irrelevante neste recorte mas relevante caso o sistema venha a ser exposto a múltiplos consumidores em produção.
+DuckDB merece explicação porque desloca o projeto de soluções mais habituais em DW (PostgreSQL, BigQuery, Snowflake). Trata-se de banco analítico em processo, sem servidor, com armazenamento colunar voltado a agregações. Para escopo municipal e volume na casa de milhões de linhas, três fatores inclinaram a balança. Não há servidor para instalar: o banco é o arquivo \texttt{data/execucao\_orcamentaria.duckdb}. Consultas analíticas competem, neste porte, com opções pagas. A ponte com \texttt{pandas} e Arrow encurta o caminho entre Python e SQL. O preço é a ausência de concorrência multiusuário em produção, irrelevante enquanto o consumo for local ou de poucos analistas, mas decisivo se o sistema migrar para portal público com tráfego simultâneo.
 
-A combinação Dagster + dbt segue o padrão atual de engenharia de dados: orquestração de \textit{assets} declarativa do lado Dagster, transformações declarativas em SQL do lado dbt, com integração via \texttt{dagster-dbt}. O \textit{asset} \texttt{dbt\_build} é executado como dependência dos \textit{assets} de extração, garantindo que a modelagem rode somente após a chegada de dados novos.
+Dagster e dbt dividem o trabalho de forma comum na engenharia de dados atual: o primeiro orquestra \textit{assets} de forma declarativa, o segundo concentra transformações em SQL. A integração via \texttt{dagster-dbt} amarra as duas partes. O \textit{asset} \texttt{dbt\_build} só roda depois dos \textit{assets} de extração, de modo que modelagem e carga chegam juntas a cada ciclo.
 
 \section{Extração: Portal da Transparência e STN}
 \label{sec:extracao}
 
-O Portal da Transparência da Prefeitura de Juiz de Fora não oferece API REST. Toda a coleta acontece via \texttt{HTTP GET} de planilhas Excel publicadas em URLs previsíveis. A ausência de API força um padrão de extração baseado em \textit{download} de arquivo, deteção de cabeçalho e \textit{parsing} com \texttt{pandas}. A Tabela~\ref{tab:fontes} sintetiza as fontes consumidas.
+O Portal da Transparência da Prefeitura de Juiz de Fora não expõe API REST. A coleta depende de \texttt{HTTP GET} sobre planilhas Excel em URLs previsíveis. Esse desenho é típico de portais municipais brasileiros: a transparência existe, mas no formato que a prefeitura já usa internamente, não no formato que um pipeline automatizado preferiria. Daí o padrão adotado: baixar arquivo, localizar cabeçalho, interpretar com \texttt{pandas}. A Tabela~\ref{tab:fontes} sintetiza as fontes consumidas.
 
 \begin{table}[htb]
 \caption{Fontes de dados consumidas pelo \textit{pipeline} de extração}
 \label{tab:fontes}
 \centering
 \small
-\begin{tabular}{p{3.4cm} p{3.0cm} p{2.0cm} p{4.8cm}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}p{2.3cm}cc p{8.8cm}@{}}
 \hline
 \textbf{\textit{Asset}} & \textbf{Origem} & \textbf{Partição} & \textbf{Conteúdo} \\
 \hline
-\texttt{despesa\_mensal\_consolidada} & PJF & Mensal & Empenhos, liquidações e pagamentos do mês \\
-\texttt{receita\_mensal\_comparativa} & PJF & Mensal & Previsão e arrecadação acumuladas no mês \\
-\texttt{receita\_mensal\_prevista} & PJF & Anual & Previsão mensal de receitas para o exercício \\
-\texttt{stn\_ementario\_natureza\_receita} & STN & Anual & Códigos e descrições oficiais de natureza de receita \\
+\begin{minipage}[t]{2.1cm}\raggedright\path{despesa_mensal_consolidada}\end{minipage} & PJF & Mensal & Empenhos, liquidações e pagamentos do mês \\
+\begin{minipage}[t]{2.1cm}\raggedright\path{receita_mensal_comparativa}\end{minipage} & PJF & Mensal & Previsão e arrecadação acumuladas no mês \\
+\begin{minipage}[t]{2.1cm}\raggedright\path{receita_mensal_prevista}\end{minipage} & PJF & Anual & Previsão mensal de receitas para o exercício \\
+\begin{minipage}[t]{2.1cm}\raggedright\path{stn_ementario_natureza_receita}\end{minipage} & STN & Anual & Códigos e descrições oficiais de natureza de receita \\
 \hline
-\end{tabular}
+\end{tabular*}
 \end{table}
 
-Três decisões de extração merecem ser discutidas, pois ilustram como o pipeline lida com problemas concretos.
+Três decisões de extração ilustram como o pipeline reage a problemas reais de fonte pública, não a um \textit{dataset} estável de laboratório.
 
 \subsection{Detecção Dinâmica de Cabeçalho}
 
-As planilhas de despesa não têm linha de cabeçalho fixa. O arquivo começa com metadados (logotipo, título do relatório, período de referência) antes da tabela de dados. A extração varre as primeiras linhas procurando a célula com o texto \texttt{"Unidade Administrativa"}, e a partir daí define o início da tabela. Essa abordagem sobrevive a pequenas variações de \textit{layout} entre meses sem exigir alteração de código.
+As planilhas de despesa não fixam a linha de cabeçalho. O arquivo abre com metadados (logotipo, título, período) antes da tabela. A extração percorre as primeiras linhas até achar a célula \texttt{"Unidade Administrativa"} e só então define o início dos dados. Pequenas mudanças de \textit{layout} entre meses deixam de quebrar a carga.
 
 \subsection{Quebra de \textit{Layout} em 2025-05}
 
-A planilha de receita comparativa mudou de \textit{layout} no arquivo de maio de 2025 (chave de partição \texttt{2505}). Em vez de uma migração destrutiva, o código mantém dois leitores especializados: \texttt{read\_receita\_comparativa\_pre2505} para o formato antigo e \texttt{read\_receita\_comparativa\_2505} para o novo. A escolha entre eles é feita no momento da extração, com base na chave de partição. A coexistência dos dois leitores preserva a capacidade de reprocessar anos anteriores sem perder dados históricos.
+A planilha de receita comparativa mudou de formato no arquivo de maio de 2025 (partição \texttt{2505}). Em vez de descartar histórico ou forçar um parser único, o código mantém dois leitores: \texttt{read\_receita\_comparativa\_pre2505} e \texttt{read\_receita\_comparativa\_2505}. A escolha ocorre na extração, pela chave de partição. Anos anteriores continuam reprocessáveis sem perda.
 
 \subsection{Idempotência por Estratégia de Escrita}
 
-Cada \textit{asset} adota a estratégia de escrita compatível com sua semântica. As tabelas de despesa e receita comparativa usam \textit{append}: cada execução insere novas linhas, e a deduplicação acontece a jusante, em \textit{staging}, por \texttt{nm\_arquivo} mais \texttt{dt\_atualizacao}. O ementário da STN, por ser anual e canônico, usa \textit{overwrite by partition}, sobrescrevendo todas as linhas do ano em questão a cada execução. O efeito prático é o mesmo em ambos os casos: reexecutar o pipeline para a mesma partição produz o mesmo estado final do \textit{warehouse}.
+Cada \textit{asset} usa a estratégia de escrita que combina com sua semântica. Despesa e receita comparativa entram por \textit{append}; a deduplicação fica no \textit{staging}, por \texttt{nm\_arquivo} e \texttt{dt\_atualizacao}. O ementário da STN, anual e canônico, usa \textit{overwrite by partition}, substituindo todas as linhas do ano a cada execução. Os caminhos diferem, mas o efeito desejado é o mesmo: reexecutar o pipeline para a mesma partição devolve o mesmo estado final do \textit{warehouse}.
 
 \section{Camada de Staging}
 
-A camada de \textit{staging} é responsável por aproximar os dados brutos do formato consumível pelas regras de negócio. Não há lógica de negócio aqui. As transformações limitam-se a: deduplicação, exclusão de linhas agregadas (como \texttt{TOTAIS GERAIS}), normalização de códigos de natureza (remoção de não dígitos e de sufixos espúrios como \texttt{.0}) e \textit{trim} de espaços. Quatro \textit{views} dbt cobrem essa etapa, uma por fonte.
+O \textit{staging} aproxima o bruto do formato que as regras de negócio exigem, sem aplicar regra de negócio ainda. Há deduplicação, remoção de linhas agregadas (\texttt{TOTAIS GERAIS}), normalização de códigos de natureza (só dígitos, sem sufixos como \texttt{.0}) e \textit{trim} de espaços. Quatro \textit{views} dbt cobrem essa etapa, uma por fonte.
 
-A deduplicação de despesa é instrutiva. Como a estratégia de escrita é \textit{append}, é comum que o mesmo arquivo de origem apareça em múltiplas execuções, em particular durante \textit{backfills}. A \textit{view} de \textit{staging} resolve isso com uma janela:
+A deduplicação de despesa mostra por que \textit{append} na extração exige cuidado a jusante. O mesmo arquivo pode entrar várias vezes, sobretudo em \textit{backfills}. A \textit{view} de \textit{staging} resolve com janela:
 
 \begin{singlespacing}
 \begin{lstlisting}[language=SQL,basicstyle=\ttfamily\small,frame=single,breaklines=true]
@@ -128,11 +128,11 @@ qualify rank() over (
 \end{lstlisting}
 \end{singlespacing}
 
-A cláusula \texttt{qualify} é específica de DuckDB e de alguns dialetos modernos. Ela permite filtrar resultados de funções de janela sem subconsulta auxiliar. O efeito é selecionar, para cada arquivo de origem, somente a versão mais recente que entrou no banco.
+A cláusula \texttt{qualify}, suportada pelo DuckDB e por dialetos SQL recentes, filtra o resultado de funções de janela sem subconsulta. Para cada arquivo de origem, permanece só a versão mais recente carregada.
 
 \section{Modelo Dimensional}
 
-A modelagem dimensional foi conduzida segundo o método dos quatro passos de Kimball: identificação dos processos de negócio, definição da granularidade, identificação das dimensões e identificação dos fatos. Dois processos foram modelados em separado: \textbf{execução de despesa} e \textbf{execução de receita}. A separação se justifica porque os dois têm granularidades, dimensões e ritmo de publicação diferentes.
+A modelagem segue os quatro passos de Kimball: processos de negócio, granularidade, dimensões e fatos. Dois processos foram tratados em separado: \textbf{execução de despesa} e \textbf{execução de receita}. Unificá-los num único fato misturaria grãos, dimensões e calendários de publicação distintos.
 
 \subsection{Tabelas de Fatos}
 
@@ -143,20 +143,20 @@ O modelo conta com três tabelas de fatos, descritas na Tabela~\ref{tab:fatos}.
 \label{tab:fatos}
 \centering
 \small
-\begin{tabular}{p{3.0cm} p{4.5cm} p{6.0cm}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}p{2.2cm}p{7.2cm}p{5.2cm}@{}}
 \hline
 \textbf{Tabela} & \textbf{Granularidade} & \textbf{Medidas} \\
 \hline
-\texttt{fct\_despesa} & Linha do arquivo mensal consolidado (combinação de empenho, unidade, fornecedor, funcional, natureza, fonte e datas) & \texttt{vl\_empenhado\_mes}, \texttt{vl\_liquidado\_mes}, \texttt{vl\_pago\_mes} \\
-\texttt{fct\_receita} & Natureza de receita por mês de referência & \texttt{vl\_previsto\_mensal}, \texttt{vl\_arrecadada\_mes} \\
-\texttt{fct\_receita\_acumulada} & Natureza de receita por mês de referência & \texttt{vl\_previsao\_inicial\_comparativa}, \texttt{vl\_previsao\_atualizada}, \texttt{vl\_arrecadada\_ano}, \texttt{vl\_a\_realizar} \\
+\begin{minipage}[t]{2.0cm}\raggedright\path{fct_despesa}\end{minipage} & Linha do arquivo mensal consolidado (combinação de empenho, unidade, fornecedor, funcional, natureza, fonte e datas) & \path{vl_empenhado_mes}, \path{vl_liquidado_mes}, \path{vl_pago_mes} \\
+\begin{minipage}[t]{2.0cm}\raggedright\path{fct_receita}\end{minipage} & Natureza de receita por mês de referência & \path{vl_previsto_mensal}, \path{vl_arrecadada_mes} \\
+\begin{minipage}[t]{2.0cm}\raggedright\path{fct_receita_acumulada}\end{minipage} & Natureza de receita por mês de referência & \path{vl_previsao_inicial_comparativa}, \path{vl_previsao_atualizada}, \path{vl_arrecadada_ano}, \path{vl_a_realizar} \\
 \hline
-\end{tabular}
+\end{tabular*}
 \end{table}
 
-A granularidade de \texttt{fct\_despesa} merece comentário. O ideal kimballiano seria uma linha por empenho ou por estágio (empenho/liquidação/pagamento), mas o portal publica apenas relatórios consolidados com valores agregados por linha do arquivo mensal. Cada linha já corresponde a uma combinação única das dimensões mais valores movimentados naquele mês. Modelar o grão neste nível preserva a informação publicada sem inventar atomicidade que a fonte não oferece. A consequência prática é que perguntas no nível de transações individuais (cada empenho específico, cada pagamento individual) não são respondíveis com os dados atuais. Essa limitação é da fonte, não do modelo.
+A granularidade de \texttt{fct\_despesa} exige cuidado. No ideal kimballiano, cada linha seria um empenho ou um estágio (empenho, liquidação, pagamento). O portal, porém, publica relatórios mensais já consolidados: cada linha agrega valores por combinação de dimensões. Modelar nesse grão respeita o que a fonte entrega, sem simular atomicidade inexistente. A troca é clara: perguntas sobre transações individuais (um empenho, um pagamento) ficam fora do alcance. Isso vem do portal, não de falha do modelo.
 
-A separação entre \texttt{fct\_receita} e \texttt{fct\_receita\_acumulada} responde a uma diferença real nas fontes. O arquivo de previsão mensal contém valor previsto por mês, alimentando \texttt{fct\_receita} após \textit{unpivot}. O arquivo comparativo contém valores acumulados no ano (previsão inicial, previsão atualizada, arrecadada no ano, a realizar), alimentando \texttt{fct\_receita\_acumulada}. Tratar as duas semânticas em uma única tabela exigiria misturar grãos, o que comprometeria a integridade analítica.
+\texttt{fct\_receita} e \texttt{fct\_receita\_acumulada} também nascem de semânticas diferentes. O arquivo de previsão mensal traz valor previsto por mês, alimentando \texttt{fct\_receita} após \textit{unpivot}. O comparativo traz acumulados no ano (previsão inicial, previsão atualizada, arrecadada, a realizar), alimentando \texttt{fct\_receita\_acumulada}. Juntar tudo numa tabela única exigiria misturar medidas de ritmo mensal com medidas de saldo anual.
 
 \subsection{Dimensões}
 
@@ -183,11 +183,13 @@ O modelo inclui oito dimensões, descritas na Tabela~\ref{tab:dimensoes}.
 \end{tabular}
 \end{table}
 
-Duas observações importam. A primeira: \texttt{dim\_natureza\_receita} mistura duas fontes. Toma a descrição oficial do ementário da STN quando disponível e usa a descrição publicada pela PJF como \textit{fallback} para códigos não cobertos. O efeito é dar ao usuário do \textit{dashboard} a nomenclatura padronizada nacionalmente quando ela existe, sem perder códigos peculiares do município. A segunda: o nome do arquivo \texttt{dim\_natureza\_despeza} preserva um erro de digitação no projeto, fato registrado aqui para honestidade documental e como lembrete de que renomeações em modelos dbt requerem atenção a referências e a testes em produção.
+\texttt{dim\_natureza\_receita} cruza duas origens. Quando o ementário da STN cobre o código, prevalece a descrição oficial; nos demais casos, entra a descrição publicada pela PJF. Quem consulta o \textit{dashboard} vê nomenclatura nacional padronizada onde ela existe, sem apagar códigos que só aparecem no município.
+
+O nome \texttt{dim\_natureza\_despeza} mantém um erro de digitação do projeto. Registro aqui por transparência e como aviso: renomear modelos dbt exige revisar referências, testes e consultas do \textit{dashboard}.
 
 \subsection{Chaves \textit{Surrogate}}
 
-Todas as dimensões usam chaves \textit{surrogate} geradas pelo \texttt{dbt\_utils.generate\_surrogate\_key}, que aplica MD5 sobre uma concatenação determinística dos campos naturais. A escolha por \textit{surrogate} segue o padrão Kimball e oferece duas vantagens. Estabilidade: a chave não muda se um campo de exibição for renomeado. Compactação: a junção entre tabelas grandes (fatos) e dimensões usa um único campo \texttt{varchar(32)}. A determinismo do hash MD5 garante que reexecutar o \textit{pipeline} produz exatamente as mesmas chaves, preservando idempotência ao longo da cadeia.
+Todas as dimensões usam chaves \textit{surrogate} geradas por \texttt{dbt\_utils.generate\_surrogate\_key}, com MD5 sobre concatenação determinística dos campos naturais. Kimball recomenda esse padrão por dois motivos operacionais. A chave não muda se um rótulo de exibição for corrigido na fonte. A junção entre fatos volumosos e dimensões usa um único \texttt{varchar(32)}. O hash determinístico garante que reprocessar o pipeline recria as mesmas chaves, preservando idempotência.
 
 \subsection{Esquema Estrela}
 
@@ -218,23 +220,23 @@ As ligações entre fatos e dimensões formam três estrelas que compartilham \t
 \end{center}
 \end{figure}
 
-Nenhuma dimensão implementa SCD (\textit{slowly changing dimension}). Todas são tipo 1, ou seja, refletem o estado mais recente da fonte. Para o caso brasileiro de descrições de natureza, isso é tolerável porque a STN publica revisões anuais que costumam ser pequenas. Mudanças mais raras, como reorganização administrativa do município, ficariam mal capturadas neste modelo e demandariam SCD tipo 2 em trabalho futuro.
+Nenhuma dimensão implementa SCD (\textit{slowly changing dimension}). Todas são tipo 1: guardam só o estado mais recente da fonte. Para descrições de natureza no padrão brasileiro, isso costuma bastar, porque a STN revisa ementários em ciclos anuais e as mudanças são pontuais. Reorganizações administrativas do município, mais raras e mais abruptas, ficariam mal registradas. Capturá-las exigiria SCD tipo 2, tarefa deixada para evolução futura.
 
 \section{Processos de ETL e Idempotência}
 
-A unidade de idempotência adotada é a partição temporal. Para PJF, mês de competência; para STN, ano de referência. Reexecutar o \textit{pipeline} para uma partição produz o mesmo estado final do \textit{warehouse}, independentemente do número de execuções anteriores. Três mecanismos sustentam essa propriedade.
+A unidade de idempotência é a partição temporal: mês de competência na PJF, ano de referência na STN. Reexecutar o pipeline para uma partição deve devolver o mesmo \textit{warehouse}, independentemente de quantas cargas anteriores existam. Três mecanismos sustentam essa propriedade.
 
-O primeiro é a estratégia de escrita por fonte, já discutida na Seção~\ref{sec:extracao}. Sobrescrita por partição para STN, \textit{append} controlado por dedup para PJF.
+A estratégia de escrita por fonte (Seção~\ref{sec:extracao}) trata STN com sobrescrita por partição e PJF com \textit{append} mais deduplicação.
 
-O segundo é o determinismo das chaves \textit{surrogate}. Como o MD5 sobre os mesmos campos produz o mesmo \textit{hash}, a recarga de uma partição não cria novas linhas espúrias em dimensões.
+As chaves \textit{surrogate} determinísticas evitam linhas espúrias em dimensões quando uma partição é recarregada: o mesmo conjunto de campos naturais gera o mesmo MD5.
 
-O terceiro é a materialização \textit{table} (não incremental) das tabelas de fatos. A cada execução, dbt reconstrói as tabelas inteiras a partir das \textit{views} de \textit{staging}. A simplicidade do \textit{full refresh} é viável dado o porte dos dados municipais e elimina classes inteiras de erro associadas a \textit{merges} incrementais. Caso o volume cresça, modelos incrementais com chave única bem definida podem substituir essa estratégia sem alterar contratos a montante.
+A materialização \textit{table}, e não incremental, nas tabelas de fatos faz o dbt reconstruir o conjunto inteiro a partir do \textit{staging} a cada execução. Para o volume municipal atual, o \textit{full refresh} elimina erros típicos de \textit{merge} incremental mal definido. Se o dado crescer, modelos incrementais com chave única estável podem substituir essa escolha sem mudar o contrato dos \textit{dashboards}.
 
 \section{Qualidade de Dados e Testes}
 
-A política de testes combina três níveis. No nível dbt, testes declarativos em arquivos \texttt{\_schema.yml} verificam unicidade e nulidade das chaves de dimensão, unicidade da combinação de \textit{surrogate keys} das tabelas de fatos, presença de valores em medidas e integridade referencial entre fatos e dimensões. No nível de regras de negócio, testes singulares em SQL verificam invariantes específicas das receitas: a arrecadação acumulada deve ser maior ou igual ao acumulado dos meses anteriores (monotonicidade no ano), e o valor a realizar deve coincidir com a diferença entre previsão atualizada e arrecadado no ano. No nível de \textit{dashboard}, testes Python em \texttt{pytest} cobrem os formatadores, as funções de classificação de natureza e função de governo e o contrato de \textit{schema} esperado das tabelas do \textit{warehouse}.
+Os testes operam em três níveis. No dbt, arquivos \texttt{\_schema.yml} checam unicidade e nulidade de chaves de dimensão, unicidade das combinações de \textit{surrogate keys} nos fatos, presença de medidas e integridade referencial. Em regras de negócio, testes singulares em SQL verificam invariantes de receita: arrecadação acumulada não pode ser menor que o acumulado dos meses anteriores (monotonicidade no ano), e o valor a realizar deve bater com previsão atualizada menos arrecadado no ano. No \textit{dashboard}, \texttt{pytest} cobre formatadores, classificação de natureza e função de governo, além do \textit{schema} esperado das tabelas do \textit{warehouse}.
 
-Esse conjunto não é exaustivo, mas captura as classes de falha mais comuns em \textit{data warehouses} fiscais: chave duplicada em dimensão, valor negativo em medida monetária por erro de \textit{parsing}, ruptura de monotonicidade entre meses por carga parcial e \textit{drift} de \textit{schema} causado por mudança de \textit{layout} na fonte. A Tabela~\ref{tab:dq} resume os testes singulares de qualidade de dados.
+Em dados fiscais publicados, falha silenciosa custa caro: um valor negativo por erro de \textit{parsing} ou uma quebra de monotonicidade entre meses pode virar conclusão errada sobre execução orçamentária. O conjunto de testes não cobre tudo, mas ataca as falhas mais prováveis: chave duplicada em dimensão, medida monetária inválida, carga parcial entre meses e \textit{drift} de \textit{schema} após mudança de \textit{layout} na fonte. A Tabela~\ref{tab:dq} resume os testes singulares.
 
 \begin{table}[htb]
 \caption{Testes singulares de qualidade de dados}
@@ -254,18 +256,18 @@ Esse conjunto não é exaustivo, mas captura as classes de falha mais comuns em 
 
 \section{Limitações da Implementação}
 
-Documentar limitações honestamente é parte do trabalho científico. A implementação atual carrega três limitações relevantes para o leitor que queira reproduzir ou estender o trabalho.
+Registrar o que o sistema não faz é tão importante quanto descrever o que faz. Três limitações marcam o recorte atual e orientam quem quiser reproduzir ou estender o trabalho.
 
 \subsection{Granularidade da Despesa}
 
-A fonte publica relatórios mensais já consolidados, não transações individuais. Análises no nível de cada empenho específico não são possíveis sem coleta de outras fontes (sistemas internos da prefeitura, eventualmente acessíveis via LAI ativa). O modelo dimensional acomoda essa limitação ao definir o grão pela linha do arquivo, mas o leitor crítico deve estar ciente de que valores no \texttt{fct\_despesa} representam movimentação mensal acumulada por combinação de dimensões, e não atos administrativos individuais.
+A fonte publica relatórios mensais consolidados, não transações individuais. Análises empenho a empenho exigiriam outras bases (sistemas internos da prefeitura, eventualmente obtidos por LAI). O modelo define o grão pela linha do arquivo, mas quem lê \texttt{fct\_despesa} precisa saber que os valores são movimentação mensal por combinação de dimensões, não atos administrativos isolados.
 
 \subsection{Ausência de Orçamento Autorizado}
 
-O \textit{warehouse} contém empenhado, liquidado e pago, mas não a dotação autorizada na LOA. Sem o valor autorizado, indicadores como ``percentual de execução sobre o autorizado'' ficam inacessíveis. A inclusão da LOA exige coleta de fonte adicional (a própria LOA do município, disponível em formato PDF) e está prevista como trabalho futuro.
+O \textit{warehouse} traz empenhado, liquidado e pago, mas não a dotação autorizada na LOA. Sem autorizado, indicadores como percentual de execução sobre o previsto na lei ficam indisponíveis. Incluir a LOA implica nova coleta (muitas vezes PDF) e parsing próprio, previstos como continuidade.
 
 \subsection{Classificação MCASP Funcional Incompleta}
 
-A dimensão \texttt{dim\_funcional\_pragmatica} preserva o código composto da funcional programática como uma única \textit{string}, sem decompor função e subfunção em campos separados. O \textit{dashboard} contorna essa lacuna com um dicionário local de classificação de funções de governo, suficiente para análises por área (saúde, educação, segurança), porém menos rico do que uma decomposição completa da hierarquia MCASP. A construção de uma \texttt{dim\_funcao} canônica, alimentada pelo ementário oficial de funções e subfunções, é direção natural para evolução do modelo.
+A dimensão \texttt{dim\_funcional\_pragmatica} guarda o código composto da funcional programática como \textit{string} única, sem separar função e subfunção. O \textit{dashboard} compensa com dicionário local de funções de governo, o que basta para cortes por área (saúde, educação, segurança), mas fica aquém da hierarquia MCASP completa. Uma \texttt{dim\_funcao} alimentada pelo ementário oficial seria o passo seguinte natural.
 
-Essas três limitações não invalidam o trabalho. Ao contrário, posicionam o leitor sobre o que o sistema de fato responde e o que ele ainda não responde, e oferecem agenda concreta de continuidade.
+Essas limitações delimitam perguntas respondíveis hoje e apontam extensões concretas: nova fonte para dotação, grão mais fino de despesa, dimensão funcional desagregada. O DW entregue cobre execução publicada no portal; não substitui o ERP municipal nem fecha sozinho o ciclo orçamentário completo.
