@@ -96,7 +96,9 @@ pct_est = pct(totais_origem.get("transf_estaduais", 0.0), total_para_share)
 candidatos = {
     k: v for k, v in totais_origem.items() if k != "deducoes" and v > 0
 }
-principal_key = max(candidatos, key=candidatos.get) if candidatos else None
+principal_key = (
+    max(candidatos, key=lambda k: candidatos[k]) if candidatos else None
+)
 pct_principal = (
     pct(candidatos[principal_key], total_para_share)
     if principal_key and total_para_share > 0

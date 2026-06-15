@@ -212,41 +212,6 @@ def insight_estagios_despesa(
     )
 
 
-def insight_eficiencia_execucao(
-    pct_liq_emp: float | None,
-    pct_pago_emp: float | None,
-    pct_pago_liq: float | None,
-) -> str:
-    """Interpreta gargalos entre estágios."""
-    if pct_liq_emp is None and pct_pago_emp is None and pct_pago_liq is None:
-        return (
-            "Indicadores de eficiência (liquidado/pago sobre empenhado) "
-            "indisponíveis — empenho total pode ser zero."
-        )
-    pl = fmt_pct(pct_liq_emp, decimals=1) if pct_liq_emp is not None else "—"
-    pe = fmt_pct(pct_pago_emp, decimals=1) if pct_pago_emp is not None else "—"
-    plq = (
-        fmt_pct(pct_pago_liq, decimals=1) if pct_pago_liq is not None else "—"
-    )
-    partes: list[str] = [
-        f"liquidado sobre empenhado: {pl}",
-        f"pago sobre empenhado: {pe}",
-        f"pago sobre liquidado: {plq}",
-    ]
-    texto = "; ".join(partes) + "."
-    if (
-        pct_pago_emp is not None
-        and pct_liq_emp is not None
-        and pct_pago_emp < 70.0
-        and pct_liq_emp >= 80.0
-    ):
-        return (
-            texto + " Muito liquidado com pouco pago pode indicar fila de "
-            "pagamentos ou atraso."
-        )
-    return texto
-
-
 def pct_concentracao_fim_periodo(
     pagamentos_mes: list[tuple[int, int, float]],
 ) -> float | None:

@@ -58,7 +58,7 @@ def detalhe_despesa(
         left join dwh.dim_fornecedor fo on f.sk_fornecedor = fo.sk_fornecedor
         left join dwh.dim_funcional_pragmatica fp
             on f.sk_funcional_pragmatica = fp.sk_funcional_pragmatica
-        left join dwh.dim_natureza_despeza nd
+        left join dwh.dim_natureza_despesa nd
             on f.sk_natureza_despesa = nd.sk_natureza_despesa
         left join dwh.dim_fonte_recurso fr
             on f.sk_fonte_recurso = fr.sk_fonte_recurso

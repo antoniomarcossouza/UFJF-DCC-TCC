@@ -39,7 +39,7 @@ models:
         data_tests:
           - not_null
 
-  - name: dim_natureza_despeza
+  - name: dim_natureza_despesa
     columns:
       - name: sk_natureza_despesa
         data_tests:
@@ -108,7 +108,7 @@ models:
           - not_null
           - relationships:
               arguments:
-                to: ref('dim_natureza_despeza')
+                to: ref('dim_natureza_despesa')
                 field: sk_natureza_despesa
       - name: sk_fonte_recurso
         data_tests:

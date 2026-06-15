@@ -150,7 +150,7 @@ def despesa_from_joins() -> str:
             on f.sk_unidade_administrativa = ua.sk_unidade_administrativa
         left join dwh.dim_funcional_pragmatica fp
             on f.sk_funcional_pragmatica = fp.sk_funcional_pragmatica
-        left join dwh.dim_natureza_despeza nd
+        left join dwh.dim_natureza_despesa nd
             on f.sk_natureza_despesa = nd.sk_natureza_despesa
         left join dwh.dim_fonte_recurso fr
             on f.sk_fonte_recurso = fr.sk_fonte_recurso
