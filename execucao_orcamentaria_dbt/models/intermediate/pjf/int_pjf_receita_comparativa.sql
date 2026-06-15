@@ -46,3 +46,8 @@ select
 from keyed as k
 inner join {{ ref('dim_tempo') }} as t
     on k.sk_tempo_referencia = t.sk_tempo
+-- Mantém apenas naturezas analíticas (folhas MCASP). Alguns arquivos mensais
+-- trazem linhas de subtotal hierárquico (categoria/origem/espécie, códigos
+-- terminados em '00000', ex.: 10000000 RECEITAS CORRENTES) que duplicariam
+-- os valores das folhas se mantidas como fato.
+where k.cd_natureza_receita not like '%00000'

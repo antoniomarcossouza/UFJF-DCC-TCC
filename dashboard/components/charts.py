@@ -91,50 +91,6 @@ def bar_horizontal(
     render_chart(fig, titulo=titulo, legenda=legenda, descricao=descricao)
 
 
-def treemap_chart(
-    df: pd.DataFrame,
-    path: list[str],
-    values: str,
-    *,
-    titulo: str,
-    legenda: str,
-    descricao: str,
-) -> None:
-    if df.empty:
-        st.info("Sem dados para exibir.")
-        return
-    fig = px.treemap(df, path=path, values=values)
-    fig.update_traces(
-        hovertemplate="%{label}<br>R$ %{value:,.2f}<extra></extra>"
-    )
-    render_chart(fig, titulo=titulo, legenda=legenda, descricao=descricao)
-
-
-def heatmap_chart(
-    df: pd.DataFrame,
-    x: str,
-    y: str,
-    z: str,
-    *,
-    titulo: str,
-    legenda: str,
-    descricao: str,
-) -> None:
-    if df.empty:
-        st.info("Sem dados para exibir.")
-        return
-    pivot = df.pivot_table(
-        index=y, columns=x, values=z, aggfunc="sum", fill_value=0
-    )
-    fig = px.imshow(
-        pivot,
-        labels=dict(x="Mês", y="Natureza", color="Arrecadação (R$)"),
-        aspect="auto",
-        color_continuous_scale="Blues",
-    )
-    render_chart(fig, titulo=titulo, legenda=legenda, descricao=descricao)
-
-
 def pareto_chart(
     df: pd.DataFrame,
     x: str,

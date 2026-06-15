@@ -14,10 +14,3 @@ def glossary_expander(*, titulo: str = "Glossário de termos") -> None:
             label, desc = termo(key)
             st.markdown(f"**{label}**")
             st.caption(desc)
-
-
-def term_with_tooltip(key: str) -> None:
-    """Rótulo + texto auxiliar (sem tooltip nativo em markdown)."""
-    label, desc = termo(key)
-    st.markdown(f"**{label}**")
-    st.caption(desc)
