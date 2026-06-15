@@ -7,43 +7,6 @@ from datetime import date
 from dashboard.utils.formatting import fmt_brl_compact, fmt_pct
 
 
-def insight_yoy(
-    arrecadado_atual: float | None,
-    arrecadado_anterior: float | None,
-    *,
-    ano_atual: int,
-    ano_anterior: int,
-) -> str:
-    """Resumo de variação ano a ano; mensagem neutra se comparação inválida."""
-    if (
-        arrecadado_atual is None
-        or arrecadado_anterior is None
-        or arrecadado_anterior == 0
-    ):
-        return (
-            "Comparação com o ano anterior indisponível para o período "
-            "selecionado (dados insuficientes ou base zerada)."
-        )
-    variacao = (
-        (arrecadado_atual - arrecadado_anterior) / arrecadado_anterior * 100.0
-    )
-    pct_txt = fmt_pct(abs(variacao), decimals=1)
-    if variacao > 0:
-        return (
-            f"A arrecadação cresceu {pct_txt} em relação ao mesmo período de "
-            f"{ano_anterior} (comparando com {ano_atual})."
-        )
-    if variacao < 0:
-        return (
-            f"A arrecadação caiu {pct_txt} em relação ao mesmo período de "
-            f"{ano_anterior} (comparando com {ano_atual})."
-        )
-    return (
-        f"A arrecadação ficou estável em relação ao mesmo período de "
-        f"{ano_anterior}."
-    )
-
-
 def insight_principal_fonte(origem_label: str, pct: float | None) -> str:
     if pct is None:
         return f"A principal fonte agregada é: {origem_label}."
@@ -186,82 +149,6 @@ def insight_tendencia_saldo(saldos_mensais: list[float]) -> str:
     return (
         f"{neg} de {total} mês(es) com saldo negativo "
         f"({fmt_pct(pct_neg, decimals=1)} da série)."
-    )
-
-
-def insight_estagios_despesa(
-    empenhado: float | None,
-    liquidado: float | None,
-    pago: float | None,
-) -> str:
-    """Explica fluxo empenho → liquidação → pagamento."""
-    if empenhado is None or liquidado is None or pago is None:
-        return (
-            "Valores de empenho, liquidação ou pagamento incompletos para "
-            "resumir o fluxo."
-        )
-    if empenhado == 0 and liquidado == 0 and pago == 0:
-        return (
-            "Sem movimento de despesa (empenho, liquidação e pagamento) no "
-            "recorte."
-        )
-    return (
-        "Fluxo típico: empenho reserva o valor; liquidação confirma que o "
-        "serviço ou bem foi entregue; pagamento é o dinheiro que saiu de "
-        f"fato ({fmt_brl_compact(pago)} pago no período)."
-    )
-
-
-def pct_concentracao_fim_periodo(
-    pagamentos_mes: list[tuple[int, int, float]],
-) -> float | None:
-    """Percentual do pago nos dois últimos meses da série; None se inválido."""
-    if not pagamentos_mes:
-        return None
-    acc: dict[tuple[int, int], float] = {}
-    for y, m, v in pagamentos_mes:
-        key = (int(y), int(m))
-        acc[key] = acc.get(key, 0.0) + float(v)
-    items = sorted(acc.items(), key=lambda x: (x[0][0], x[0][1]))
-    total = sum(v for _, v in items)
-    if total <= 0 or len(items) <= 2:
-        return None
-    last_two_keys = [items[-2][0], items[-1][0]]
-    soma_ultimos = sum(acc[k] for k in last_two_keys)
-    return 100.0 * soma_ultimos / total
-
-
-def insight_concentracao_fim_periodo(
-    pagamentos_mes: list[tuple[int, int, float]],
-) -> str:
-    """% dos pagamentos concentrados nos dois últimos meses da série."""
-    if not pagamentos_mes:
-        return (
-            "Sem série mensal suficiente para medir concentração no fim do "
-            "período."
-        )
-    acc: dict[tuple[int, int], float] = {}
-    for y, m, v in pagamentos_mes:
-        key = (int(y), int(m))
-        acc[key] = acc.get(key, 0.0) + float(v)
-    items = sorted(acc.items(), key=lambda x: (x[0][0], x[0][1]))
-    total = sum(v for _, v in items)
-    if total <= 0:
-        return "Pagamentos zerados no recorte: concentração não se aplica."
-    if len(items) <= 2:
-        return (
-            f"Período com {len(items)} mês(es): indicador dos dois últimos "
-            "meses menos informativo."
-        )
-    last_two_keys = [items[-2][0], items[-1][0]]
-    soma_ultimos = sum(acc[k] for k in last_two_keys)
-    pct_val = 100.0 * soma_ultimos / total
-    a1, m1 = last_two_keys[0]
-    a2, m2 = last_two_keys[1]
-    return (
-        f"Nos dois últimos meses da série ({m1:02d}/{a1} e {m2:02d}/{a2}), "
-        f"concentram-se {fmt_pct(pct_val, decimals=1)} do total pago no "
-        "gráfico."
     )
 
 

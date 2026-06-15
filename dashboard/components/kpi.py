@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from dashboard.utils.formatting import fmt_brl, fmt_brl_compact, fmt_pct
+from dashboard.utils.formatting import fmt_brl_compact, fmt_pct
 
 
 def kpi_row(
@@ -21,12 +21,6 @@ def kpi_row(
             label, value, help_text = item
             delta = None
         col.metric(label, value, delta=delta, help=help_text)
-
-
-def kpi_brl(
-    label: str, value: float | None, help_text: str | None = None
-) -> tuple[str, str, str | None]:
-    return (label, fmt_brl(value), help_text)
 
 
 def kpi_pct(

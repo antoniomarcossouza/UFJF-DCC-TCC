@@ -66,67 +66,6 @@ def serie_mensal_despesa(filters: FilterState) -> tuple[str, list]:
     return sql, params
 
 
-def distribuicao_funcional(
-    filters: FilterState, top_n: int = 25
-) -> tuple[str, list]:
-    params: list = []
-    where = build_despesa_where(filters, params)
-    sql = f"""
-        select
-            substr(fp.cd_funcional_pragmatica, 1, 2) as cd_funcao,
-            substr(fp.cd_funcional_pragmatica, 4, 3) as cd_subfuncao,
-            max(fp.ds_funcional_pragmatica) as ds_funcional_pragmatica,
-            coalesce(
-                max(m.ds_funcao),
-                'Função '
-                || lpad(
-                    trim(cast(
-                        max(substr(fp.cd_funcional_pragmatica, 1, 2))
-                        as varchar
-                    )),
-                    2,
-                    '0'
-                )
-            ) as nm_funcao_mcasp,
-            coalesce(
-                max(m.ds_subfuncao),
-                'Subfunção '
-                || lpad(
-                    trim(cast(
-                        max(substr(fp.cd_funcional_pragmatica, 4, 3))
-                        as varchar
-                    )),
-                    3,
-                    '0'
-                )
-            ) as nm_subfuncao_mcasp,
-            coalesce(sum(f.vl_pago_mes), 0) as vl_pago
-        {despesa_from_joins()}
-        left join dwh.dim_funcional_mcasp m
-            on lpad(
-                trim(cast(
-                    substr(fp.cd_funcional_pragmatica, 1, 2) as varchar
-                )),
-                2,
-                '0'
-            ) = m.cd_funcao
-            and lpad(
-                trim(cast(
-                    substr(fp.cd_funcional_pragmatica, 4, 3) as varchar
-                )),
-                3,
-                '0'
-            ) = m.cd_subfuncao
-        where {where}
-        group by
-            substr(fp.cd_funcional_pragmatica, 1, 2),
-            substr(fp.cd_funcional_pragmatica, 4, 3)
-        order by vl_pago desc
-        limit {top_n}
-    """
-    return sql, params
-
-
 def ranking_naturezas_despesa(
     filters: FilterState, top_n: int = 20
 ) -> tuple[str, list]:

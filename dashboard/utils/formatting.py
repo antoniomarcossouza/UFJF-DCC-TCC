@@ -22,12 +22,6 @@ def fmt_pct(value: float | None, decimals: int = 1) -> str:
     return f"{value:.{decimals}f}%"
 
 
-def fmt_int(value: int | float | None) -> str:
-    if value is None:
-        return "—"
-    return f"{int(value):,}".replace(",", ".")
-
-
 def fmt_date(value: date | None) -> str:
     if value is None:
         return "—"
@@ -84,13 +78,3 @@ def fmt_brl_compact(value: float | int | None, *, decimals: int = 1) -> str:
     body = _brl_compact_body(abs(v), decimals)
     prefix = "R$ -" if neg else "R$ "
     return prefix + body
-
-
-def fmt_delta_pct(value: float | None, *, decimals: int = 1) -> str:
-    """Variação percentual com sinal para st.metric(delta=...)."""
-    if value is None:
-        return "—"
-    body = f"{value:.{decimals}f}%".replace(".", ",")
-    if value > 0:
-        return f"+{body}"
-    return body

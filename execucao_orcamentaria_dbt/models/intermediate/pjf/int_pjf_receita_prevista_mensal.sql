@@ -108,3 +108,7 @@ select
 from keyed as k
 inner join {{ ref('dim_tempo') }} as t
     on k.sk_tempo_referencia = t.sk_tempo
+-- Remove linhas de subtotal hierárquico (categoria/origem/espécie, códigos
+-- terminados em '00000'); a previsão dessas linhas é a soma das folhas e
+-- duplicaria o previsto se mantida.
+where k.cd_natureza_receita not like '%00000'

@@ -11,7 +11,6 @@ import streamlit as st
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DB_PATH = REPO_ROOT / "data" / "execucao_orcamentaria.duckdb"
-SCHEMA = "dwh"
 
 
 def get_db_path() -> Path:
@@ -36,7 +35,3 @@ def run_query(sql: str, params: tuple | list | None = None) -> pd.DataFrame:
     if params:
         return con.execute(sql, params).fetchdf()
     return con.execute(sql).fetchdf()
-
-
-def fq(table: str) -> str:
-    return f"{SCHEMA}.{table}"
