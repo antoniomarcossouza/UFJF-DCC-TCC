@@ -1,4 +1,4 @@
-"""Sidebar de filtros globais (persistidos em session_state)."""
+"""Sidebar de filtros globais (session_state + query params na URL)."""
 
 from __future__ import annotations
 
@@ -10,6 +10,21 @@ import streamlit as st
 from dashboard.queries import dim_options
 from dashboard.queries.filters import FilterState
 from dashboard.utils.db import run_query
+from dashboard.utils.filter_persistence import (
+    FILTER_QUERY_PARAMS,
+    QP_ANOS,
+    QP_FONTES,
+    QP_FORNECEDOR_BUSCA,
+    QP_FORNECEDORES,
+    QP_FUNCOES,
+    QP_MESES,
+    QP_NAT_DESPESA,
+    QP_NAT_RECEITA,
+    QP_UNIDADES,
+    build_filter_query_params,
+    current_filter_query_params,
+    read_filter_query_params,
+)
 
 # Chaves em st.session_state — compartilhadas entre todas as páginas
 K_ANOS = "global_filter_anos"
@@ -21,6 +36,53 @@ K_FONTES = "global_filter_fontes"
 K_FORNECEDORES = "global_filter_fornecedores"
 K_FORNECEDOR_BUSCA = "global_filter_fornecedor_busca"
 K_NAT_RECEITA = "global_filter_naturezas_receita"
+K_FILTERS_HYDRATED = "_global_filters_hydrated_from_url"
+
+_STATE_BY_QUERY_PARAM = {
+    QP_ANOS: K_ANOS,
+    QP_MESES: K_MESES,
+    QP_UNIDADES: K_UNIDADES,
+    QP_FUNCOES: K_FUNCOES,
+    QP_NAT_DESPESA: K_NAT_DESPESA,
+    QP_FONTES: K_FONTES,
+    QP_FORNECEDORES: K_FORNECEDORES,
+    QP_NAT_RECEITA: K_NAT_RECEITA,
+    QP_FORNECEDOR_BUSCA: K_FORNECEDOR_BUSCA,
+}
+
+
+def _hydrate_from_url() -> None:
+    """Carrega filtros da URL na primeira execução da sessão (ex.: após F5)."""
+    if st.session_state.get(K_FILTERS_HYDRATED):
+        return
+    parsed = read_filter_query_params(dict(st.query_params))
+    for qp_key, state_key in _STATE_BY_QUERY_PARAM.items():
+        if qp_key not in parsed:
+            continue
+        st.session_state[state_key] = parsed[qp_key]
+    st.session_state[K_FILTERS_HYDRATED] = True
+
+
+def _sync_to_url() -> None:
+    """Espelha filtros atuais na URL para sobreviver a refresh."""
+    desired = build_filter_query_params(
+        anos=st.session_state.get(K_ANOS, []),
+        meses=st.session_state.get(K_MESES, []),
+        unidades=st.session_state.get(K_UNIDADES, []),
+        funcoes=st.session_state.get(K_FUNCOES, []),
+        naturezas_despesa=st.session_state.get(K_NAT_DESPESA, []),
+        fontes=st.session_state.get(K_FONTES, []),
+        fornecedores=st.session_state.get(K_FORNECEDORES, []),
+        naturezas_receita=st.session_state.get(K_NAT_RECEITA, []),
+        fornecedor_busca=st.session_state.get(K_FORNECEDOR_BUSCA, ""),
+    )
+    if desired == current_filter_query_params(dict(st.query_params)):
+        return
+    for key in FILTER_QUERY_PARAMS:
+        if key in st.query_params:
+            del st.query_params[key]
+    for key, value in desired.items():
+        st.query_params[key] = value
 
 
 def _normalize_key(valor) -> str | int:
@@ -91,6 +153,7 @@ def _init_multiselect(
 
 def render_sidebar_filters() -> FilterState:
     st.sidebar.header("Filtros globais")
+    _hydrate_from_url()
 
     anos_opts = _options(*dim_options.anos_disponiveis())
     _init_multiselect(K_ANOS, anos_opts)
@@ -200,6 +263,7 @@ def render_sidebar_filters() -> FilterState:
         ),
     )
     st.session_state["filters"] = filters
+    _sync_to_url()
     return filters
 
 

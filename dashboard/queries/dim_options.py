@@ -77,7 +77,7 @@ def naturezas_despesa() -> tuple[str, list]:
         """
         select sk_natureza_despesa as valor,
             cd_natureza_despesa || ' - ' || ds_natureza_despesa as rotulo
-        from dwh.dim_natureza_despeza
+        from dwh.dim_natureza_despesa
         order by rotulo
         """,
         [],

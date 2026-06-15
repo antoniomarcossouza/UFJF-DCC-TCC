@@ -23,16 +23,3 @@ def render_data_coverage() -> None:
                 f"**{fato}**: {fmt_date(dt_min)} a {fmt_date(dt_max)} "
                 f"({qtd} mês(es) distintos)"
             )
-        st.warning(
-            "Orçamento autorizado (dotação) não está no warehouse — "
-            "percentuais de execução sobre orçamento autorizado não são exibidos. "
-            "Função/subfunção: códigos numéricos + descrição da ação; "
-            "sem nomes MCASP oficiais."
-        )
-
-
-def render_orcamento_autorizado_aviso() -> None:
-    st.info(
-        "Métrica 'orçamento autorizado' não disponível no modelo atual. "
-        "Exibindo eficiência: liquidado/pago sobre empenhado."
-    )
