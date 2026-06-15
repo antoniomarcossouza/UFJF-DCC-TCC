@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: dim_empenho
-    description: "Empenho no consolidado mensal; sk_empenho = h(nu_nota_empenho + cd_processo + ds_empenho). DISTINCT ON (sk_empenho) escolhe uma linha por chave (ORDER BY define qual)."
+    description: "Empenho no consolidado mensal; sk_empenho = h(nm_unidade_administrativa + nu_nota_empenho + cd_processo). A descrição é volátil entre os arquivos cumulativos e não entra na chave; ds_empenho carrega o valor do snapshot mais recente."
     columns:
       - name: sk_empenho
         data_tests:
@@ -71,7 +71,6 @@ models:
               - sk_natureza_despesa
               - sk_fonte_recurso
               - sk_tempo_empenho
-              - sk_tempo_liquidacao
       - dbt_utils.expression_is_true:
           arguments:
             expression: "vl_empenhado_mes >= 0 and vl_liquidado_mes >= 0 and vl_pago_mes >= 0"

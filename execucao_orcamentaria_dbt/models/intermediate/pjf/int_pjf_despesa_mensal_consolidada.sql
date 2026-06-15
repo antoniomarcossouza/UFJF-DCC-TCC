@@ -4,6 +4,10 @@ with base as (
     select
         nm_arquivo,
         dt_atualizacao,
+        2000 + cast(left(split_part(lower(nm_arquivo), '.', 1), 2) as int)
+            as nu_ano_referencia,
+        cast(right(split_part(lower(nm_arquivo), '.', 1), 2) as int)
+            as nu_mes_referencia,
         "Unidade Administrativa" as nm_unidade_administrativa,
         "Nº da Nota de Empenho" as nu_nota_empenho,
         "Modalidade
@@ -59,6 +63,8 @@ keyed as (
             as sk_fonte_recurso,
         nm_arquivo,
         dt_atualizacao,
+        nu_ano_referencia,
+        nu_mes_referencia,
         nm_unidade_administrativa,
         nu_nota_empenho,
         ds_modalidade_empenho,
