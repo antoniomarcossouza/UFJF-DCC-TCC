@@ -14,7 +14,6 @@ if str(ROOT) not in sys.path:
 
 from dashboard.components import (
     charts,
-    disclaimers,
     filters,
     progress,
     tables,
@@ -69,7 +68,7 @@ st.caption(
     "Entenda de onde vem o dinheiro da prefeitura e se a arrecadação está "
     "no esperado em relação à previsão."
 )
-disclaimers.render_data_coverage()
+
 
 df_kpi = run_query(*receitas.kpis_execucao_receita(flt))
 exec_pct = None

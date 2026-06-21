@@ -102,14 +102,6 @@ GLOSSARY: dict[str, tuple[str, str]] = {
         "Pessoa física ou jurídica que recebe pagamento da prefeitura por "
         "bens ou serviços.",
     ),
-    "pareto": (
-        "Curva de Pareto",
-        "Princípio de Pareto (80/20): em muitos casos, poucos itens somam "
-        "a maior parte do total. Aqui, cada barra é o valor pago a um "
-        "fornecedor (do maior para o menor); a linha mostra o percentual "
-        "acumulado. Se a linha sobe muito rápido à esquerda, poucos "
-        "credores concentram quase todo o pagamento.",
-    ),
     "saldo_fiscal": (
         "Saldo fiscal (recorte)",
         "Diferença entre arrecadação e pagamentos no período filtrado; "

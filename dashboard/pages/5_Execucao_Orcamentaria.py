@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from dashboard.components import charts, disclaimers, filters, tables
+from dashboard.components import charts, filters, tables
 from dashboard.components import glossary as glossary_ui
 from dashboard.components import narrative as narrative_ui
 from dashboard.queries import unidades
@@ -30,7 +30,7 @@ st.caption(
     "Compare quais secretarias e áreas de governo mais executam o "
     "orçamento (empenho, liquidação e pagamento)."
 )
-disclaimers.render_data_coverage()
+
 
 with st.expander("O que você quer descobrir?", expanded=False):
     st.markdown(
