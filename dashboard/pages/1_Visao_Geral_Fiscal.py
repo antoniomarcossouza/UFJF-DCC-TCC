@@ -53,10 +53,6 @@ with st.expander("O que você quer descobrir?", expanded=False):
 - **Como variou ao longo do tempo?** Seção 3.
         """
     )
-st.caption(
-    "Os números seguem o recorte escolhido nos filtros da barra lateral "
-    "(ano, mês, unidade, função, naturezas, fontes, fornecedores)."
-)
 
 st.markdown('<a id="fiscal-s1"></a>', unsafe_allow_html=True)
 st.subheader("1. Resumo")
@@ -106,7 +102,6 @@ if not df_ultimo.empty:
     c2.metric("Pagamentos do mês", fmt_brl(float(u["vl_pago_mes"])))
     saldo_m = float(u["vl_saldo_mensal"])
     c3.metric("Saldo mensal", fmt_brl(saldo_m))
-    dt_ref = u["dt_ref"]
 else:
     st.info("Sem dados de último mês para o recorte atual.")
 

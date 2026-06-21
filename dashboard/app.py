@@ -44,6 +44,10 @@ pages = [
         DASHBOARD / "pages/5_Execucao_Orcamentaria.py",
         title="Execução Orçamentária",
     ),
+    st.Page(
+        DASHBOARD / "pages/6_Glossario.py",
+        title="Glossário",
+    ),
 ]
 
 pg = st.navigation(pages)

@@ -12,14 +12,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from dashboard.components import charts, filters, tables
-from dashboard.components import glossary as glossary_ui
-from dashboard.components import narrative as narrative_ui
 from dashboard.queries import unidades
 from dashboard.queries.funcao_classification import nome_funcao
 from dashboard.utils.db import run_query
 from dashboard.utils.glossary import termo
-from dashboard.utils.narrative import insight_top_funcao, insight_top_unidade
-from dashboard.utils.safe_math import pct as pct_safe
 
 st.set_page_config(page_title="Execução Orçamentária", layout="wide")
 filters.render_sidebar_filters()
@@ -35,13 +31,10 @@ st.caption(
 with st.expander("O que você quer descobrir?", expanded=False):
     st.markdown(
         """
-- **Quais secretarias mais gastam?** — seção 1 (unidades administrativas).
-- **Quais áreas (saúde, educação…) mais consomem?** — seção 2 (função).
+- **Quais secretarias mais gastam?** Seção 1.
+- **Quais áreas (saúde, educação…) mais consomem?** Seção 2.
         """
     )
-st.caption(
-    "Os números seguem o recorte escolhido nos filtros da barra lateral."
-)
 
 st.markdown('<a id="exec-s1"></a>', unsafe_allow_html=True)
 st.subheader("1. Por unidade administrativa")
@@ -64,22 +57,28 @@ if not df_ua.empty:
         legenda="Comparativo dos três estágios por unidade",
         descricao="Mostra quais unidades mais executam despesas no período.",
     )
-    row_u = df_ua.sort_values("vl_pago", ascending=False).iloc[0]
-    total_u = float(df_ua["vl_pago"].sum())
-    pct_u = pct_safe(float(row_u["vl_pago"]), total_u)
     _, h_ua = termo("unidade_administrativa")
-    narrative_ui.insight_box(
-        insight_top_unidade(
-            str(row_u["nm_unidade_administrativa"]),
-            float(row_u["vl_pago"]),
-            pct_u,
-        ),
-        tone="info",
-    )
     tables.render_table(
         df_ua,
         titulo="Tabela por unidade",
         descricao=h_ua,
+        column_config={
+            "nm_unidade_administrativa": st.column_config.TextColumn(
+                label="Unidade Administrativa"
+            ),
+            "vl_empenhado": st.column_config.NumberColumn(
+                "Empenhado",
+                format="R$ %.2f",
+            ),
+            "vl_liquidado": st.column_config.NumberColumn(
+                "Liquidado",
+                format="R$ %.2f",
+            ),
+            "vl_pago": st.column_config.NumberColumn(
+                "Pago",
+                format="R$ %.2f",
+            ),
+        },
     )
 else:
     st.info("Sem execução por unidade no recorte.")
@@ -112,22 +111,11 @@ if not df_func.empty:
         descricao="Ex.: saúde (10) e educação (12) aparecem pelo código de "
         "função.",
     )
-    row_f = df_func.sort_values("vl_pago", ascending=False).iloc[0]
-    total_f = float(df_func["vl_pago"].sum())
-    pct_f = pct_safe(float(row_f["vl_pago"]), total_f)
-    label_f = (
-        f"{nome_funcao(str(row_f['cd_funcao']))} / sub {row_f['cd_subfuncao']}"
-    )
-    narrative_ui.insight_box(
-        insight_top_funcao(label_f, float(row_f["vl_pago"]), pct_f),
-        tone="info",
-    )
     tables.render_table(
         df_func,
         titulo="Detalhamento funcional",
         descricao="ds_acao_exemplo: descrição de uma ação representativa do "
         "grupo.",
     )
-    glossary_ui.glossary_expander()
 else:
     st.info("Sem execução funcional no recorte.")

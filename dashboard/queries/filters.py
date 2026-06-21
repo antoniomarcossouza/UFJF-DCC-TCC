@@ -3,9 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
-
-Context = Literal["receita", "receita_acumulada", "despesa"]
 
 
 @dataclass(frozen=True)
@@ -18,21 +15,6 @@ class FilterState:
     sk_fontes: tuple[str, ...] = ()
     sk_fornecedores: tuple[str, ...] = ()
     sk_naturezas_receita: tuple[str, ...] = ()
-
-    @property
-    def has_any(self) -> bool:
-        return any(
-            (
-                self.anos,
-                self.meses,
-                self.sk_unidades,
-                self.cd_funcoes,
-                self.sk_naturezas_despesa,
-                self.sk_fontes,
-                self.sk_fornecedores,
-                self.sk_naturezas_receita,
-            )
-        )
 
     def without_meses(self) -> FilterState:
         """Mesmo recorte, sem filtro de mês (ex.: último mês no ano escolhido)."""
@@ -57,7 +39,6 @@ def _in_clause(column: str, values: tuple, params: list) -> str | None:
 
 
 def build_time_where(
-    context: Context,
     filters: FilterState,
     params: list,
     *,
@@ -81,11 +62,8 @@ def build_receita_where(
     *,
     fact_alias: str = "f",
     tempo_alias: str = "t",
-    natureza_alias: str = "nr",
 ) -> str:
-    clauses = build_time_where(
-        "receita", filters, params, tempo_alias=tempo_alias
-    )
+    clauses = build_time_where(filters, params, tempo_alias=tempo_alias)
     if filters.sk_naturezas_receita:
         c = _in_clause(
             f"{fact_alias}.sk_natureza_receita",
@@ -105,15 +83,9 @@ def build_despesa_where(
     *,
     fact_alias: str = "f",
     tempo_alias: str = "t",
-    unidade_alias: str = "ua",
     funcional_alias: str = "fp",
-    natureza_alias: str = "nd",
-    fonte_alias: str = "fr",
-    fornecedor_alias: str = "fo",
 ) -> str:
-    clauses = build_time_where(
-        "despesa", filters, params, tempo_alias=tempo_alias
-    )
+    clauses = build_time_where(filters, params, tempo_alias=tempo_alias)
     if filters.sk_unidades:
         c = _in_clause(
             f"{fact_alias}.sk_unidade_administrativa",

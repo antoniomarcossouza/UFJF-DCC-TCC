@@ -31,40 +31,6 @@ ORIGEM_LABEL: dict[str, str] = {
     "deducoes": "Deduções e restituições (reduzem a receita)",
 }
 
-ORIGEM_DESCRICAO: dict[str, str] = {
-    "impostos_proprios": (
-        "Tributos e taxas cobrados pelo município, como IPTU, ISS e taxas."
-    ),
-    "transf_federais": (
-        "Recursos vindos do governo federal: FPM, parcelas do FUNDEB, "
-        "repasses de convênios e programas federais."
-    ),
-    "transf_estaduais": (
-        "Recursos vindos do estado: cota-parte do ICMS, IPVA e demais "
-        "repasses estaduais."
-    ),
-    "outras_transf": (
-        "Demais transferências correntes entre esferas que não se enquadram "
-        "nas categorias federal ou estadual principal."
-    ),
-    "outras_correntes": (
-        "Receitas correntes que não são impostos próprios nem as principais "
-        "transferências classificadas acima."
-    ),
-    "capital": (
-        "Receitas destinadas a investimentos e amortização da dívida, "
-        "conforme classificação orçamentária."
-    ),
-    "intra": (
-        "Movimentações entre contas do próprio orçamento, sem entrada "
-        "externa de recursos."
-    ),
-    "deducoes": (
-        "Valores que reduzem a receita bruta, como deduções legais e "
-        "restituições (códigos contábeis da STN em 9)."
-    ),
-}
-
 
 def classify_origem(cd: str) -> OrigemReceita:
     """Classifica código de natureza de receita (MCASP) em origem agregada."""

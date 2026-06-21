@@ -18,12 +18,6 @@ from dashboard.components import (
     progress,
     tables,
 )
-from dashboard.components import (
-    glossary as glossary_ui,
-)
-from dashboard.components import (
-    narrative as narrative_ui,
-)
 from dashboard.queries import natureza_classification as nc
 from dashboard.queries import receitas
 from dashboard.queries.filters import FilterState
@@ -34,12 +28,6 @@ from dashboard.utils.formatting import (
     limpar_rotulo_natureza_receita,
 )
 from dashboard.utils.glossary import termo
-from dashboard.utils.narrative import (
-    insight_evolucao_anual,
-    insight_execucao,
-    insight_participacao_transferencias,
-    insight_principal_fonte,
-)
 from dashboard.utils.safe_math import pct
 
 
@@ -49,14 +37,6 @@ def _rotulo_arrecadado(flt: FilterState) -> str:
     if len(flt.anos) > 1:
         return "Arrecadado (período filtrado)"
     return "Arrecadado (todos os anos)"
-
-
-def _rotulo_periodo_progresso(flt: FilterState) -> int | str:
-    if len(flt.anos) == 1:
-        return int(flt.anos[0])
-    if len(flt.anos) > 1:
-        return "período selecionado"
-    return "todos os anos"
 
 
 st.set_page_config(page_title="Receitas", layout="wide")
@@ -92,20 +72,6 @@ if not df_pref.empty:
 total_para_share = sum(max(0.0, v) for v in totais_origem.values()) or 0.0
 pct_fed = pct(totais_origem.get("transf_federais", 0.0), total_para_share)
 pct_est = pct(totais_origem.get("transf_estaduais", 0.0), total_para_share)
-candidatos = {
-    k: v for k, v in totais_origem.items() if k != "deducoes" and v > 0
-}
-principal_key = (
-    max(candidatos, key=lambda k: candidatos[k]) if candidatos else None
-)
-pct_principal = (
-    pct(candidatos[principal_key], total_para_share)
-    if principal_key and total_para_share > 0
-    else None
-)
-label_principal = (
-    nc.ORIGEM_LABEL.get(principal_key, "—") if principal_key else "—"
-)
 
 with st.expander("O que você quer descobrir?", expanded=False):
     st.markdown(
@@ -115,10 +81,6 @@ with st.expander("O que você quer descobrir?", expanded=False):
 - **Arrecadou o esperado?** — seção 4 (previsto vs realizado).
         """
     )
-st.caption(
-    "Os números seguem o recorte escolhido nos filtros da barra lateral "
-    "(ano, mês e natureza da receita)."
-)
 
 st.markdown('<a id="receitas-s1"></a>', unsafe_allow_html=True)
 st.subheader("1. Resumo")
@@ -155,11 +117,6 @@ with c5:
         help="Parcela classificada como transferências estaduais "
         "(códigos 172…, ex.: ICMS).",
     )
-
-bullets = [insight_execucao(vl_arr_ano, vl_prev, exec_pct)]
-if principal_key:
-    bullets.append(insight_principal_fonte(label_principal, pct_principal))
-narrative_ui.insight_bullets(bullets)
 
 st.divider()
 st.markdown('<a id="receitas-s2"></a>', unsafe_allow_html=True)
@@ -202,12 +159,6 @@ if totais_origem:
 else:
     st.info("Sem arrecadação no recorte para agrupar por origem.")
 
-narrative_ui.insight_box(
-    insight_participacao_transferencias(pct_fed, pct_est),
-    tone="info",
-)
-glossary_ui.glossary_expander()
-
 st.divider()
 st.markdown('<a id="receitas-s3"></a>', unsafe_allow_html=True)
 st.subheader("3. Evolução histórica")
@@ -236,15 +187,6 @@ if not df_anual.empty:
         descricao="Compara meta acumulada no ano com o que entrou.",
         x_label="Ano",
         y_log_scale=True,
-    )
-    vals = {
-        int(r["nu_ano"]): float(r["vl_arrecadada"])
-        for _, r in df_anual.iterrows()
-    }
-    ano_parcial = max(vals) if vals else None
-    narrative_ui.insight_box(
-        insight_evolucao_anual(vals, ano_parcial=ano_parcial),
-        tone="info",
     )
 else:
     st.info("Sem série anual para o filtro atual.")
@@ -278,11 +220,7 @@ pi_label, pi_desc = termo("previsao_atualizada")
 rr_label, rr_desc = termo("receita_realizada")
 st.markdown(f"**{pi_label}**: {pi_desc}  \n**{rr_label}**: {rr_desc}")
 if vl_prev is not None and vl_arr_ano is not None:
-    progress.previsto_realizado_bar(
-        vl_arr_ano,
-        vl_prev,
-        ano=_rotulo_periodo_progresso(flt),
-    )
+    progress.previsto_realizado_bar(vl_arr_ano, vl_prev)
 else:
     st.info(
         "Indicador indisponível (dados de previsão ou realizado ausentes)."
