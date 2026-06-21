@@ -39,6 +39,9 @@ root_module = "execucao_orcamentaria"
 registry_modules = ["execucao_orcamentaria.lib.*"]
 
 # Ruff
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
 [tool.ruff]
 line-length = 79
 

@@ -6,6 +6,8 @@ from dashboard.queries.filters import (
     FilterState,
     build_despesa_where,
     despesa_from_joins,
+    funcional_cd_funcao_sql,
+    funcional_cd_subfuncao_sql,
 )
 
 
@@ -33,17 +35,34 @@ def execucao_por_funcao(
 ) -> tuple[str, list]:
     params: list = []
     where = build_despesa_where(filters, params)
+    cd_funcao = funcional_cd_funcao_sql("fp")
+    cd_subfuncao = funcional_cd_subfuncao_sql("fp")
     sql = f"""
+        with execucao as (
+            select
+                {cd_funcao} as cd_funcao,
+                {cd_subfuncao} as cd_subfuncao,
+                coalesce(sum(f.vl_empenhado_mes), 0) as vl_empenhado,
+                coalesce(sum(f.vl_liquidado_mes), 0) as vl_liquidado,
+                coalesce(sum(f.vl_pago_mes), 0) as vl_pago
+            {despesa_from_joins()}
+            where {where}
+            group by 1, 2
+        )
         select
-            substr(fp.cd_funcional_pragmatica, 1, 2) as cd_funcao,
-            substr(fp.cd_funcional_pragmatica, 4, 3) as cd_subfuncao,
-            max(fp.ds_funcional_pragmatica) as ds_acao_exemplo,
-            coalesce(sum(f.vl_empenhado_mes), 0) as vl_empenhado,
-            coalesce(sum(f.vl_liquidado_mes), 0) as vl_liquidado,
-            coalesce(sum(f.vl_pago_mes), 0) as vl_pago
-        {despesa_from_joins()}
-        where {where}
-        group by 1, 2
-        order by vl_pago desc
+            e.cd_funcao,
+            coalesce(fn.ds_funcao, 'Função ' || e.cd_funcao) as ds_funcao,
+            e.cd_subfuncao,
+            coalesce(
+                sf.ds_subfuncao,
+                'Subfunção ' || e.cd_subfuncao
+            ) as ds_subfuncao,
+            e.vl_empenhado,
+            e.vl_liquidado,
+            e.vl_pago
+        from execucao e
+        left join dwh.dim_funcao fn on e.cd_funcao = fn.cd_funcao
+        left join dwh.dim_subfuncao sf on e.cd_subfuncao = sf.cd_subfuncao
+        order by e.vl_pago desc
     """
     return sql, params

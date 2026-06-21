@@ -27,3 +27,35 @@ models:
       - name: dt_atualizacao
         data_tests:
           - not_null
+
+  - name: stg_pjf_loa_funcao
+    columns:
+      - name: cd_funcao
+        data_tests:
+          - not_null
+          - unique
+      - name: ds_funcao
+        data_tests:
+          - not_null
+      - name: nm_arquivo
+        data_tests:
+          - not_null
+      - name: dt_atualizacao
+        data_tests:
+          - not_null
+
+  - name: stg_pjf_loa_subfuncao
+    columns:
+      - name: cd_subfuncao
+        data_tests:
+          - not_null
+          - unique
+      - name: ds_subfuncao
+        data_tests:
+          - not_null
+      - name: nm_arquivo
+        data_tests:
+          - not_null
+      - name: dt_atualizacao
+        data_tests:
+          - not_null

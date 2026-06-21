@@ -37,9 +37,6 @@ FUNCAO_NOME: dict[str, str] = {
 
 def nome_funcao(cd_funcao: str) -> str:
     """Retorna nome legível ou 'Função {cd}' se desconhecido."""
-    if cd_funcao is None or not isinstance(cd_funcao, str):
-        msg = "cd_funcao deve ser string"
-        raise TypeError(msg)
     s = cd_funcao.strip()
     if not s:
         msg = "cd_funcao não pode ser vazio"

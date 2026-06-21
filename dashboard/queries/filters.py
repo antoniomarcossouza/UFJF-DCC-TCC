@@ -96,7 +96,7 @@ def build_despesa_where(
             clauses.append(c)
     if filters.cd_funcoes:
         c = _in_clause(
-            f"substr({funcional_alias}.cd_funcional_pragmatica, 1, 2)",
+            funcional_cd_funcao_sql(funcional_alias),
             filters.cd_funcoes,
             params,
         )
@@ -125,6 +125,32 @@ def build_despesa_where(
     if not clauses:
         return "1=1"
     return " AND ".join(clauses)
+
+
+def funcional_cd_funcao_sql(funcional_alias: str = "fp") -> str:
+    """Extrai código de função (2 dígitos) da classificação funcional PJF."""
+    col = f"{funcional_alias}.cd_funcional_pragmatica"
+    return f"""case
+        when strpos({col}, '.') > 0
+            then lpad(substr({col}, 1, 2), 2, '0')
+        when try_cast(substr({col}, 1, 2) as integer) > 28
+            and try_cast(substr({col}, 1, 2) as integer) <> 99
+            then lpad(substr({col}, 1, 1), 2, '0')
+        else lpad(substr({col}, 1, 2), 2, '0')
+    end"""
+
+
+def funcional_cd_subfuncao_sql(funcional_alias: str = "fp") -> str:
+    """Extrai subfunção (3 dígitos); posição depende de código com ou sem ponto."""
+    col = f"{funcional_alias}.cd_funcional_pragmatica"
+    return f"""case
+        when strpos({col}, '.') > 0
+            then lpad(substr({col}, 4, 3), 3, '0')
+        when try_cast(substr({col}, 1, 2) as integer) > 28
+            and try_cast(substr({col}, 1, 2) as integer) <> 99
+            then lpad(substr({col}, 2, 3), 3, '0')
+        else lpad(substr({col}, 3, 3), 3, '0')
+    end"""
 
 
 def despesa_from_joins() -> str:

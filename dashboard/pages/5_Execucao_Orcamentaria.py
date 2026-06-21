@@ -13,7 +13,6 @@ if str(ROOT) not in sys.path:
 
 from dashboard.components import charts, filters, tables
 from dashboard.queries import unidades
-from dashboard.queries.funcao_classification import nome_funcao
 from dashboard.utils.db import run_query
 from dashboard.utils.glossary import termo
 
@@ -87,15 +86,14 @@ st.divider()
 st.markdown('<a id="exec-s2"></a>', unsafe_allow_html=True)
 st.subheader("2. Por função e subfunção")
 st.caption(
-    "Função = grande área (código de duas posições, ex.: 10 saúde). "
-    "Subfunção detalha dentro da função."
+    "Função = grande área de governo (ex.: Saúde, Educação). "
+    "Subfunção detalha a atuação dentro da função. "
+    "Nomes conforme LOA PJF (exercício orçamentário)."
 )
 df_func = run_query(*unidades.execucao_por_funcao(flt))
 if not df_func.empty:
     df_func["rotulo"] = (
-        df_func["cd_funcao"].astype(str).map(nome_funcao)
-        + " — sub "
-        + df_func["cd_subfuncao"].astype(str)
+        df_func["ds_funcao"] + " — " + df_func["ds_subfuncao"]
     )
     charts.grouped_bar(
         df_func.head(20),
@@ -108,14 +106,43 @@ if not df_func.empty:
         },
         titulo="Execução por função e subfunção (top 20)",
         legenda="Áreas de governo + estágios da despesa",
-        descricao="Ex.: saúde (10) e educação (12) aparecem pelo código de "
-        "função.",
+        descricao="Ex.: Saúde — Administração Geral agrupa despesas da função 10 "
+        "e subfunção 122.",
     )
+    _, h_func = termo("funcao")
+    _, h_sub = termo("subfuncao")
     tables.render_table(
-        df_func,
+        df_func[
+            [
+                "ds_funcao",
+                "cd_funcao",
+                "ds_subfuncao",
+                "cd_subfuncao",
+                "vl_empenhado",
+                "vl_liquidado",
+                "vl_pago",
+            ]
+        ],
         titulo="Detalhamento funcional",
-        descricao="ds_acao_exemplo: descrição de uma ação representativa do "
-        "grupo.",
+        descricao=f"{h_func} {h_sub}",
+        column_config={
+            "ds_funcao": st.column_config.TextColumn("Função"),
+            "cd_funcao": st.column_config.TextColumn("Cód. função"),
+            "ds_subfuncao": st.column_config.TextColumn("Subfunção"),
+            "cd_subfuncao": st.column_config.TextColumn("Cód. subfunção"),
+            "vl_empenhado": st.column_config.NumberColumn(
+                "Empenhado",
+                format="R$ %.2f",
+            ),
+            "vl_liquidado": st.column_config.NumberColumn(
+                "Liquidado",
+                format="R$ %.2f",
+            ),
+            "vl_pago": st.column_config.NumberColumn(
+                "Pago",
+                format="R$ %.2f",
+            ),
+        },
     )
 else:
     st.info("Sem execução funcional no recorte.")

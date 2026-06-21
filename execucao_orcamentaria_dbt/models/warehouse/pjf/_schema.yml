@@ -39,7 +39,52 @@ models:
         data_tests:
           - not_null
 
+  - name: dim_funcao
+    description: "Funções orçamentárias da LOA PJF (DimLOA)."
+    columns:
+      - name: sk_funcao
+        data_tests:
+          - not_null
+          - unique
+      - name: cd_funcao
+        data_tests:
+          - not_null
+          - unique
+      - name: ds_funcao
+        data_tests:
+          - not_null
+      - name: sk_tempo_ementa
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tempo')
+                field: sk_tempo
+
+  - name: dim_subfuncao
+    description: "Subfunções orçamentárias da LOA PJF (DimLOA)."
+    columns:
+      - name: sk_subfuncao
+        data_tests:
+          - not_null
+          - unique
+      - name: cd_subfuncao
+        data_tests:
+          - not_null
+          - unique
+      - name: ds_subfuncao
+        data_tests:
+          - not_null
+      - name: sk_tempo_ementa
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tempo')
+                field: sk_tempo
+
   - name: dim_natureza_despesa
+    description: "Natureza de despesa a partir da execução PJF."
     columns:
       - name: sk_natureza_despesa
         data_tests:
@@ -48,6 +93,13 @@ models:
       - name: cd_natureza_despesa
         data_tests:
           - not_null
+      - name: sk_tempo_ementa
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tempo')
+                field: sk_tempo
 
   - name: dim_fonte_recurso
     columns:
