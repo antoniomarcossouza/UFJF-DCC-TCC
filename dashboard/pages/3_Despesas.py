@@ -130,8 +130,10 @@ if not df_serie.empty:
         titulo="Evolução da execução da despesa",
         legenda="Três estágios da despesa pública municipal",
         descricao="Acompanha empenho, liquidação e pagamento ao longo do "
-        "tempo.",
+        "tempo. Meses com valor zero em alguma série não aparecem no "
+        "gráfico log.",
         x_label="Período",
+        y_log_scale=True,
     )
 else:
     st.info("Sem série mensal para o filtro atual.")
@@ -175,6 +177,7 @@ if not df_acc.empty and len(df_acc) > 1:
         legenda="Série de pagamentos mensais",
         descricao="Útil para ver sazonalidade e fechamentos de exercício.",
         x_label="Período",
+        y_log_scale=True,
     )
 else:
     st.info("Sem série suficiente de pagamentos para esta análise.")
