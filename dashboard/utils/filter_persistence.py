@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-# Nomes curtos na URL — estáveis para compartilhar links com filtros
 QP_ANOS = "anos"
 QP_MESES = "meses"
 QP_UNIDADES = "ua"

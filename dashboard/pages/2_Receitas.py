@@ -76,9 +76,8 @@ pct_est = pct(totais_origem.get("transf_estaduais", 0.0), total_para_share)
 with st.expander("O que você quer descobrir?", expanded=False):
     st.markdown(
         """
-- **Maiores fontes** — seção 2 (gráfico por origem).
-- **Quanto vem do governo federal** — cards “Repasse federal” no resumo.
-- **Arrecadou o esperado?** — seção 4 (previsto vs realizado).
+- **Maiores fontes** Seção 2.
+- **Arrecadou o esperado?** Seção 4.
         """
     )
 
@@ -125,17 +124,6 @@ st.caption(
     "A maior parte da receita municipal costuma vir de repasses dos "
     "governos federal e estadual, não só de impostos cobrados aqui."
 )
-fed_v = totais_origem.get("transf_federais", 0.0)
-est_v = totais_origem.get("transf_estaduais", 0.0)
-out_tr_v = totais_origem.get("outras_transf", 0.0)
-st.caption(
-    "Repasses no recorte (valores brutos): "
-    f"União {fmt_brl_compact(fed_v)}; "
-    f"estado {fmt_brl_compact(est_v)}; "
-    f"outras transferências {fmt_brl_compact(out_tr_v)}. "
-    "No gráfico, repasses da União e do estado aparecem nas barras "
-    "correspondentes quando há arrecadação nessas classificações."
-)
 if totais_origem:
     rows = [
         {"origem": nc.ORIGEM_LABEL[k], "valor": v}
@@ -151,10 +139,6 @@ if totais_origem:
         x="valor",
         titulo="Composição por origem (valores no período)",
         legenda="Barras: total arrecadado no recorte dos filtros.",
-        descricao=(
-            "Origens por regras do código de receita: 171… União, 172… "
-            "estado, 17… demais transferências, 11… impostos próprios."
-        ),
     )
 else:
     st.info("Sem arrecadação no recorte para agrupar por origem.")
@@ -184,7 +168,6 @@ if not df_anual.empty:
         },
         titulo="Por ano: previsto vs realizado",
         legenda="Linhas: arrecadado e soma do previsto mensal por ano.",
-        descricao="Compara meta acumulada no ano com o que entrou.",
         x_label="Ano",
         y_log_scale=True,
     )
@@ -206,7 +189,6 @@ if not df_mensal.empty:
         },
         titulo="Por mês: previsto vs realizado",
         legenda="Eixo X: mês/ano; linhas: arrecadado e previsto mensal.",
-        descricao="Detalhe mês a mês no mesmo recorte de mês/natureza.",
         x_label="Período",
         y_log_scale=True,
     )
@@ -232,17 +214,28 @@ if not df_prev_nat.empty:
     df_show["ds_natureza_receita"] = df_show["ds_natureza_receita"].apply(
         limpar_rotulo_natureza_receita
     )
-    df_show["vl_arrecadada_ano"] = df_show["vl_arrecadada_ano"].apply(
-        lambda x: fmt_brl_compact(float(x))
-    )
-    df_show["vl_previsao_atualizada"] = df_show[
-        "vl_previsao_atualizada"
-    ].apply(lambda x: fmt_brl_compact(float(x)))
-    df_show["pct_realizacao"] = df_show["pct_realizacao"].apply(
-        lambda x: fmt_pct(float(x)) if x is not None else "—"
-    )
     tables.render_table(
         df_show,
         titulo="Realização por natureza da receita",
         descricao="Inclui todas as naturezas com meta definida no período.",
+        column_config={
+            "cd_natureza_receita": st.column_config.TextColumn(
+                "Cód. natureza"
+            ),
+            "ds_natureza_receita": st.column_config.TextColumn(
+                "Natureza da receita"
+            ),
+            "vl_arrecadada_ano": st.column_config.NumberColumn(
+                "Arrecadado",
+                format="R$ %.2f",
+            ),
+            "vl_previsao_atualizada": st.column_config.NumberColumn(
+                "Previsão atualizada",
+                format="R$ %.2f",
+            ),
+            "pct_realizacao": st.column_config.NumberColumn(
+                "Realização (%)",
+                format="%.1f%%",
+            ),
+        },
     )

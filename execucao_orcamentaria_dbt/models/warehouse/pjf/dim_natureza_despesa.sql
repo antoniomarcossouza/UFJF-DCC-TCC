@@ -15,7 +15,7 @@ with pjf_base as (
 pjf_sem_codigo as (
     select
         sk_natureza_despesa,
-        coalesce(nullif(trim(cd_natureza_despesa), ''), '—') as cd_natureza_despesa,
+        coalesce(nullif(trim(cd_natureza_despesa), ''), '-') as cd_natureza_despesa,
         coalesce(
             nullif(trim(ds_natureza_despesa), ''),
             'Natureza não informada'

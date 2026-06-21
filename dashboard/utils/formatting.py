@@ -7,7 +7,7 @@ import re
 
 def fmt_brl(value: float | int | None) -> str:
     if value is None:
-        return "—"
+        return "-"
     return (
         f"R$ {value:,.2f}".replace(",", "X")
         .replace(".", ",")
@@ -17,20 +17,20 @@ def fmt_brl(value: float | int | None) -> str:
 
 def fmt_pct(value: float | None, decimals: int = 1) -> str:
     if value is None:
-        return "—"
+        return "-"
     return f"{value:.{decimals}f}%"
 
 
 def _limpar_prefixo_codigo_descricao(ds: str | None) -> str:
     """Remove prefixo tipo código MCASP antes do traço (receita/despesa)."""
     if ds is None:
-        return "—"
+        return "-"
     s = str(ds).strip()
     if not s:
-        return "—"
+        return "-"
     s = re.sub(r"^\d+(\.\d+)?\s*-\s*", "", s)
     s = s.strip()
-    return s if s else "—"
+    return s if s else "-"
 
 
 def limpar_rotulo_natureza_receita(ds: str | None) -> str:
@@ -65,7 +65,7 @@ def _brl_compact_body(abs_val: float, decimals: int) -> str:
 def fmt_brl_compact(value: float | int | None, *, decimals: int = 1) -> str:
     """Valor em reais legível (mi / bi / mil) para leigos."""
     if value is None:
-        return "—"
+        return "-"
     v = float(value)
     neg = v < 0
     body = _brl_compact_body(abs(v), decimals)
