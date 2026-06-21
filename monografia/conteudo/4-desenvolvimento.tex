@@ -95,8 +95,8 @@ O Portal da Transparência da Prefeitura de Juiz de Fora não expõe API REST. A
 \begin{minipage}[t]{2.1cm}\raggedright\path{receita_mensal_comparativa}\end{minipage} & PJF & Mensal & Previsão e arrecadação acumuladas no mês \\
 \begin{minipage}[t]{2.1cm}\raggedright\path{receita_mensal_prevista}\end{minipage} & PJF & Anual & Previsão mensal de receitas para o exercício \\
 \begin{minipage}[t]{2.1cm}\raggedright\path{stn_ementario_natureza_receita}\end{minipage} & STN & Anual & Códigos e descrições oficiais de natureza de receita \\
-\begin{minipage}[t]{2.1cm}\raggedright\path{pjf_loa_funcao}\end{minipage} & LOA PJF & 2026 & Funções orçamentárias (DimLOA, \texttt{Funcao.pdf}) \\
-\begin{minipage}[t]{2.1cm}\raggedright\path{pjf_loa_subfuncao}\end{minipage} & LOA PJF & 2026 & Subfunções orçamentárias (DimLOA, \texttt{SubFuncao.pdf}) \\
+\begin{minipage}[t]{2.1cm}\raggedright\path{pjf_loa_funcao}\end{minipage} & LOA PJF & Sem partição & Funções orçamentárias (DimLOA, \texttt{Funcao.pdf}, exercício 2026) \\
+\begin{minipage}[t]{2.1cm}\raggedright\path{pjf_loa_subfuncao}\end{minipage} & LOA PJF & Sem partição & Subfunções orçamentárias (DimLOA, \texttt{SubFuncao.pdf}, exercício 2026) \\
 \hline
 \end{tabular*}
 \end{table}
@@ -115,11 +115,11 @@ A planilha de receita comparativa mudou de formato no arquivo de maio de 2025 (p
 
 A LOA PJF publica a classificação funcional (DimLOA) em \texttt{Funcionais.zip}, com um arquivo PDF por tabela (\texttt{Funcao.pdf}, \texttt{SubFuncao.pdf}). Os PDFs são imagens escaneadas, não texto selecionável. A extração converte cada página com \texttt{pdftoppm} (Poppler) e reconhece o texto com Tesseract (pacotes instalados na imagem Docker do \textit{user code}). O \textit{parser} valida o layout do exercício 2026 (29 funções, 117 subfunções) e grava duas tabelas brutas em \texttt{stg}.
 
-A partição Dagster está restrita ao exercício 2026. Cada ano orçamentário traz PDFs com \textit{layout} distinto; generalizar a ingestão exige validar e, se necessário, adaptar o \textit{parser} ano a ano. Por ora, função e subfunção alimentam \texttt{dim\_funcao} e \texttt{dim\_subfuncao}, usadas no \textit{dashboard} para rotular cortes por área de governo. Não há dotação autorizada nesta carga.
+Os \textit{assets} não são particionados: o exercício 2026 está fixo na constante \texttt{LOA\_YEAR}. Cada ano orçamentário traz PDFs com \textit{layout} distinto; generalizar a ingestão exige validar e, se necessário, adaptar o \textit{parser} ano a ano. Por ora, função e subfunção alimentam \texttt{dim\_funcao} e \texttt{dim\_subfuncao}, usadas no \textit{dashboard} para rotular cortes por área de governo. Não há dotação autorizada nesta carga.
 
 \subsection{Idempotência por Estratégia de Escrita}
 
-Cada \textit{asset} usa a estratégia de escrita que combina com sua semântica. Despesa e receita comparativa entram por \textit{append}; a deduplicação fica no \textit{staging}, por \texttt{nm\_arquivo} e \texttt{dt\_atualizacao}. O ementário da STN e as tabelas da LOA, anuais e canônicas, usam \textit{overwrite by partition}, substituindo todas as linhas do ano a cada execução. Os caminhos diferem, mas o efeito desejado é o mesmo: reexecutar o pipeline para a mesma partição devolve o mesmo estado final do \textit{warehouse}.
+Cada \textit{asset} usa a estratégia de escrita que combina com sua semântica. Despesa e receita comparativa entram por \textit{append}; a deduplicação fica no \textit{staging}, por \texttt{nm\_arquivo} e \texttt{dt\_atualizacao}. O ementário da STN usa \textit{overwrite by partition}, substituindo todas as linhas do ano a cada execução. As tabelas da LOA, anuais e canônicas, usam sobrescrita total da tabela (\textit{overwrite}), pois carregam um único exercício por materialização. Os caminhos diferem, mas o efeito desejado é o mesmo: reexecutar o pipeline devolve o mesmo estado final do \textit{warehouse}.
 
 \section{Camada de Staging}
 
@@ -236,9 +236,9 @@ Nenhuma dimensão implementa SCD (\textit{slowly changing dimension}). Todas sã
 
 \section{Processos de ETL e Idempotência}
 
-A unidade de idempotência é a partição temporal: mês de competência nas planilhas PJF, ano de referência na STN e exercício 2026 na LOA funcional. Reexecutar o pipeline para uma partição deve devolver o mesmo \textit{warehouse}, independentemente de quantas cargas anteriores existam. Três mecanismos sustentam essa propriedade.
+A unidade de idempotência é a partição temporal nas fontes particionadas: mês de competência nas planilhas PJF e ano de referência na STN. A LOA funcional não usa partição Dagster; a idempotência vem da sobrescrita total das tabelas brutas a cada materialização. Reexecutar o pipeline deve devolver o mesmo \textit{warehouse}, independentemente de quantas cargas anteriores existam. Três mecanismos sustentam essa propriedade.
 
-A estratégia de escrita por fonte (Seção~\ref{sec:extracao}) trata STN com sobrescrita por partição e PJF com \textit{append} mais deduplicação.
+A estratégia de escrita por fonte (Seção~\ref{sec:extracao}) trata STN com sobrescrita por partição, LOA com sobrescrita total e planilhas PJF com \textit{append} mais deduplicação.
 
 As chaves \textit{surrogate} determinísticas evitam linhas espúrias em dimensões quando uma partição é recarregada: o mesmo conjunto de campos naturais gera o mesmo MD5.
 

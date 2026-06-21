@@ -122,7 +122,6 @@ if not df_serie.empty:
         },
         titulo="Evolução mensal: arrecadação vs pagamentos",
         legenda="Linhas: arrecadação, pagamentos e saldo mensal",
-        descricao="Compara entradas e saídas por mês",
         x_label="Período",
         y_log_scale=True,
     )

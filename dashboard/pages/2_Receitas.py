@@ -217,7 +217,6 @@ if not df_prev_nat.empty:
     tables.render_table(
         df_show,
         titulo="Realização por natureza da receita",
-        descricao="Inclui todas as naturezas com meta definida no período.",
         column_config={
             "cd_natureza_receita": st.column_config.TextColumn(
                 "Cód. natureza"

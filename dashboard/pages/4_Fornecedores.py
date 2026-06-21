@@ -107,7 +107,6 @@ if not df_rank.empty:
             ]
         ],
         titulo="Ranking completo",
-        descricao="Inclui quantidade de empenhos e participação percentual.",
         column_config={
             "cd_cpf_cnpj": st.column_config.TextColumn("CPF/CNPJ"),
             "nm_fornecedor": st.column_config.TextColumn("Fornecedor"),
@@ -159,9 +158,6 @@ if not df_rank.empty:
                 titulo="Evolução temporal de pagamentos",
                 legenda="Pagamentos mensais ao fornecedor selecionado "
                 "(eixo Y em escala logarítmica)",
-                descricao="Acompanha tendência de pagamentos e volume de "
-                "empenhos distintos. Meses sem pagamento não aparecem no "
-                "gráfico log.",
                 x_label="Período",
                 y_log_scale=True,
             )

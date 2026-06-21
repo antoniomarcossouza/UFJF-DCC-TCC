@@ -53,8 +53,7 @@ if not df_ua.empty:
             "vl_pago": "Pago",
         },
         titulo="Execução por unidade administrativa (top 20)",
-        legenda="Comparativo dos três estágios por unidade",
-        descricao="Mostra quais unidades mais executam despesas no período.",
+        legenda="Comparativo dos três estágios por unidade"
     )
     _, h_ua = termo("unidade_administrativa")
     tables.render_table(
@@ -106,8 +105,6 @@ if not df_func.empty:
         },
         titulo="Execução por função e subfunção (top 20)",
         legenda="Áreas de governo + estágios da despesa",
-        descricao="Ex.: Saúde - Administração Geral agrupa despesas da função 10"
-        "e subfunção 122.",
     )
     _, h_func = termo("funcao")
     _, h_sub = termo("subfuncao")

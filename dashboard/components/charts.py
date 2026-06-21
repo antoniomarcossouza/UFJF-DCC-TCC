@@ -134,7 +134,7 @@ def grouped_bar(
     *,
     titulo: str,
     legenda: str,
-    descricao: str,
+    descricao: str | None = None,
 ) -> None:
     if df.empty:
         st.info("Sem dados para exibir.")

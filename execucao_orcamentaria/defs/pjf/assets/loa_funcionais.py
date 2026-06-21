@@ -9,14 +9,14 @@ from dagster.components import definitions
 from dagster_duckdb import DuckDBResource
 
 from execucao_orcamentaria.defs.filesystem.resources import LocalFSResource
-from execucao_orcamentaria.defs.pjf.partitions import year_partition_loa
 from execucao_orcamentaria.parsers.loa_funcionais import extract_funcionais_zip
-from execucao_orcamentaria.utils.duckdb import overwrite_partition_in_duckdb
+from execucao_orcamentaria.utils.duckdb import overwrite_table_in_duckdb
 
 USER_AGENT = (
     "Mozilla/5.0 (compatible; execucao-orcamentaria/1.0; +https://github.com/)"
 )
 LOA_DIR = "pjf_loa_funcionais"
+LOA_YEAR = 2026
 
 
 def loa_funcionais_url(year: int) -> str:
@@ -89,16 +89,14 @@ def read_loa_funcionais(
 
 
 @dg.asset(
-    partitions_def=year_partition_loa,
     kinds={"zip", "pdf", "pandas", "duckdb"},
     group_name="raw",
 )
 def pjf_loa_funcao(
-    context: dg.AssetExecutionContext,
     fs: LocalFSResource,
     duckdb: DuckDBResource,
 ) -> dg.MaterializeResult:
-    year = int(context.partition_key)
+    year = LOA_YEAR
     zip_bytes, zip_path = ensure_loa_zip(year, fs)
     extract_dir = zip_path.parent / str(year)
 
@@ -109,30 +107,26 @@ def pjf_loa_funcao(
         extract_dir=extract_dir,
     )
 
-    overwrite_partition_in_duckdb(
+    overwrite_table_in_duckdb(
         duckdb=duckdb,
         _df=df_funcao,
         schema="stg",
         table="pjf_loa_funcao",
-        partition_col="nu_ano_referencia",
-        partition_value=year,
     )
 
     return dg.MaterializeResult()
 
 
 @dg.asset(
-    partitions_def=year_partition_loa,
     deps=[pjf_loa_funcao],
     kinds={"zip", "pdf", "pandas", "duckdb"},
     group_name="raw",
 )
 def pjf_loa_subfuncao(
-    context: dg.AssetExecutionContext,
     fs: LocalFSResource,
     duckdb: DuckDBResource,
 ) -> dg.MaterializeResult:
-    year = int(context.partition_key)
+    year = LOA_YEAR
     zip_bytes, zip_path = ensure_loa_zip(year, fs)
     extract_dir = zip_path.parent / str(year)
 
@@ -143,13 +137,11 @@ def pjf_loa_subfuncao(
         extract_dir=extract_dir,
     )
 
-    overwrite_partition_in_duckdb(
+    overwrite_table_in_duckdb(
         duckdb=duckdb,
         _df=df_subfuncao,
         schema="stg",
         table="pjf_loa_subfuncao",
-        partition_col="nu_ano_referencia",
-        partition_value=year,
     )
 
     return dg.MaterializeResult()
