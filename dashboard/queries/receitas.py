@@ -62,9 +62,7 @@ def serie_mensal_arrecadacao(filters: FilterState) -> tuple[str, list]:
     return sql, params
 
 
-def receitas_abaixo_previsto(
-    filters: FilterState, limite_pct: float = 80.0
-) -> tuple[str, list]:
+def previsto_realizado_por_natureza(filters: FilterState) -> tuple[str, list]:
     # Mesmo cuidado do KPI: usa só o snapshot acumulado mais recente de cada
     # (natureza, ano) antes de agregar, para não somar o year-to-date repetido.
     params: list = []
@@ -97,9 +95,6 @@ def receitas_abaixo_previsto(
         from snapshot
         group by cd_natureza_receita, ds_natureza_receita
         having sum(vl_previsao_atualizada) > 0
-            and (
-                100.0 * sum(vl_arrecadada_ano) / sum(vl_previsao_atualizada)
-            ) < {limite_pct}
         order by pct_realizacao asc nulls last
     """
     return sql, params
