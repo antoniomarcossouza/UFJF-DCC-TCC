@@ -13,6 +13,8 @@ logs/
 !data/**/*.duckdb
 data/**/*.xls
 data/**/*.xlsx
+data/**/*.pdf
+data/**/*.zip
 
 # LaTeX
 *.aux

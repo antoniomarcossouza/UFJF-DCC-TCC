@@ -50,3 +50,33 @@ sources:
         meta:
           dagster:
             asset_key: ["receita_mensal_prevista"]
+      - name: pjf_loa_funcao
+        loaded_at_field: dt_atualizacao
+        freshness:
+          warn_after: {count: 400, period: day}
+          error_after: {count: 800, period: day}
+        columns:
+          - name: nm_arquivo
+            data_tests:
+              - not_null
+          - name: dt_atualizacao
+            data_tests:
+              - not_null
+        meta:
+          dagster:
+            asset_key: ["pjf_loa_funcao"]
+      - name: pjf_loa_subfuncao
+        loaded_at_field: dt_atualizacao
+        freshness:
+          warn_after: {count: 400, period: day}
+          error_after: {count: 800, period: day}
+        columns:
+          - name: nm_arquivo
+            data_tests:
+              - not_null
+          - name: dt_atualizacao
+            data_tests:
+              - not_null
+        meta:
+          dagster:
+            asset_key: ["pjf_loa_subfuncao"]

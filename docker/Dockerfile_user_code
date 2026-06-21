@@ -2,7 +2,12 @@ FROM python:3.13-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    poppler-utils \
+    tesseract-ocr \
+    tesseract-ocr-por \
+    && rm -rf /var/lib/apt/lists/* \
+    && pdftotext -v >/dev/null \
+    && tesseract --version >/dev/null
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
