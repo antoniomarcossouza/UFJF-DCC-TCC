@@ -124,9 +124,6 @@ if not df_serie.empty:
         },
         titulo="Evolução da execução da despesa",
         legenda="Três estágios da despesa pública municipal",
-        descricao="Acompanha empenho, liquidação e pagamento ao longo do "
-        "tempo. Meses com valor zero em alguma série não aparecem no "
-        "gráfico log.",
         x_label="Período",
         y_log_scale=True,
     )
@@ -150,8 +147,6 @@ if not df_nat.empty:
         x="vl_pago",
         titulo="Principais naturezas de despesa (valor pago)",
         legenda="Barras: total pago por natureza no recorte",
-        descricao="Ranking das categorias econômicas que mais receberam "
-        "pagamento.",
     )
 else:
     st.info("Sem naturezas de despesa no recorte.")
@@ -170,7 +165,6 @@ if not df_acc.empty and len(df_acc) > 1:
         labels={"vl_pago": "Pagamentos"},
         titulo="Pagamentos mês a mês",
         legenda="Série de pagamentos mensais",
-        descricao="Útil para ver sazonalidade e fechamentos de exercício.",
         x_label="Período",
         y_log_scale=True,
     )

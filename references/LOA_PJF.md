@@ -18,7 +18,7 @@ Função e subfunção são **independentes** na LOA PJF (combinação livre na 
 
 | Camada | Artefato |
 |--------|----------|
-| Dagster | `pjf_loa_funcao`, `pjf_loa_subfuncao` (partição **2026** apenas; `%Y`) |
+| Dagster | `pjf_loa_funcao`, `pjf_loa_subfuncao` (sem partição; exercício fixo **2026** em `LOA_YEAR`) |
 | Raw FS | `data/pjf_loa_funcionais/{ano}.zip` |
 | DuckDB | `stg.pjf_loa_funcao`, `stg.pjf_loa_subfuncao` |
 | Staging | `stg_pjf_loa_funcao`, `stg_pjf_loa_subfuncao` |
@@ -40,10 +40,10 @@ docker compose build ufjf_tcc_user_code
 docker compose up -d ufjf_tcc_user_code ufjf_tcc_daemon ufjf_tcc_webserver
 ```
 
-Materialize a partição 2026 (função baixa o zip; subfunção depende dela):
+Materialize os assets (função baixa o zip; subfunção depende dela):
 
 ```bash
-dg asset materialize --partition 2026 -m execucao_orcamentaria.defs.pjf.assets.loa_funcionais --select pjf_loa_funcao,pjf_loa_subfuncao
+dg asset materialize -m execucao_orcamentaria.defs.pjf.assets.loa_funcionais --select pjf_loa_funcao,pjf_loa_subfuncao
 
 dbt build --select stg_pjf_loa_funcao+ stg_pjf_loa_subfuncao+
 ```
@@ -52,8 +52,8 @@ dbt build --select stg_pjf_loa_funcao+ stg_pjf_loa_subfuncao+
 
 1. Confirmar URL do zip no portal de transparência da PJF.
 2. Validar/adaptar o parser ao layout dos PDFs do novo exercício (cada ano pode diferir).
-3. Ampliar `year_partition_loa` em `execucao_orcamentaria/defs/pjf/partitions.py`.
-4. Materializar a nova partição no Dagster e rodar `dbt build` nos modelos LOA.
+3. Atualizar `LOA_YEAR` em `execucao_orcamentaria/defs/pjf/assets/loa_funcionais.py`.
+4. Materializar os assets no Dagster e rodar `dbt build` nos modelos LOA.
 
 ## Limitações
 
