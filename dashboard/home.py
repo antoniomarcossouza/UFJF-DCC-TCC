@@ -32,5 +32,6 @@ st.markdown(
     - **Despesas:** empenho, liquidação, pagamento
     - **Fornecedores:** concentração e ranking
     - **Execução Orçamentária:** unidades e funções
+    - **Glossário:** termos orçamentários em linguagem simples
     """
 )

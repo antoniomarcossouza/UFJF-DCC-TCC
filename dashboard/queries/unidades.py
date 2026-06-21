@@ -10,7 +10,7 @@ from dashboard.queries.filters import (
 
 
 def execucao_por_unidade(
-    filters: FilterState, top_n: int = 30
+    filters: FilterState
 ) -> tuple[str, list]:
     params: list = []
     where = build_despesa_where(filters, params)
@@ -24,13 +24,12 @@ def execucao_por_unidade(
         where {where}
         group by ua.nm_unidade_administrativa
         order by vl_pago desc
-        limit {top_n}
     """
     return sql, params
 
 
 def execucao_por_funcao(
-    filters: FilterState, top_n: int = 30
+    filters: FilterState
 ) -> tuple[str, list]:
     params: list = []
     where = build_despesa_where(filters, params)
@@ -46,6 +45,5 @@ def execucao_por_funcao(
         where {where}
         group by 1, 2
         order by vl_pago desc
-        limit {top_n}
     """
     return sql, params

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from datetime import date
 
 
 def fmt_brl(value: float | int | None) -> str:
@@ -20,12 +19,6 @@ def fmt_pct(value: float | None, decimals: int = 1) -> str:
     if value is None:
         return "—"
     return f"{value:.{decimals}f}%"
-
-
-def fmt_date(value: date | None) -> str:
-    if value is None:
-        return "—"
-    return value.strftime("%d/%m/%Y")
 
 
 def _limpar_prefixo_codigo_descricao(ds: str | None) -> str:

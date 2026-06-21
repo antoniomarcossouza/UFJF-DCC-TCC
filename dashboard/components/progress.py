@@ -10,8 +10,6 @@ from dashboard.utils.formatting import fmt_brl_compact, fmt_pct
 def previsto_realizado_bar(
     realizado: float,
     previsto: float,
-    *,
-    ano: int | str,
 ) -> None:
     """Barra de progresso previsto vs realizado com alertas por faixa."""
     if previsto <= 0:

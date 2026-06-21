@@ -125,40 +125,6 @@ def bar_horizontal(
     render_chart(fig, titulo=titulo, legenda=legenda, descricao=descricao)
 
 
-def pareto_chart(
-    df: pd.DataFrame,
-    x: str,
-    y: str,
-    y2: str,
-    *,
-    titulo: str,
-    legenda: str,
-    descricao: str,
-) -> None:
-    if df.empty:
-        st.info("Sem dados para exibir.")
-        return
-    fig = go.Figure()
-    fig.add_trace(go.Bar(x=df[x], y=df[y], name="Valor pago"))
-    fig.add_trace(
-        go.Scatter(
-            x=df[x],
-            y=df[y2],
-            name="% acumulado",
-            yaxis="y2",
-            mode="lines+markers",
-        )
-    )
-    fig.update_layout(
-        yaxis=dict(title="Valor pago (R$)"),
-        yaxis2=dict(
-            title="% acumulado", overlaying="y", side="right", range=[0, 105]
-        ),
-        legend_title_text="Série",
-    )
-    render_chart(fig, titulo=titulo, legenda=legenda, descricao=descricao)
-
-
 def grouped_bar(
     df: pd.DataFrame,
     x: str,

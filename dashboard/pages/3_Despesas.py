@@ -37,10 +37,6 @@ with st.expander("O que você quer descobrir?", expanded=False):
 - Pagamentos concentrados no fim do período? Seção 5.
         """
     )
-st.caption(
-    "Os números seguem o recorte escolhido nos filtros da barra lateral "
-    "(ano, mês, unidade, função, natureza da despesa, fonte, fornecedor)."
-)
 
 st.markdown('<a id="despesas-s1"></a>', unsafe_allow_html=True)
 st.subheader("1. Resumo")
