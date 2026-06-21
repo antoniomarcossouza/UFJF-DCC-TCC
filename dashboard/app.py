@@ -9,7 +9,7 @@ if str(ROOT) not in sys.path:
 
 import streamlit as st  # noqa: E402
 
-from dashboard.components.filters import render_sidebar_filters  # noqa: E402
+DASHBOARD = Path(__file__).resolve().parent
 
 st.set_page_config(
     page_title="Execução Orçamentária Municipal",
@@ -18,22 +18,33 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-filters = render_sidebar_filters()
+pages = [
+    st.Page(
+        DASHBOARD / "home.py",
+        title="Início",
+        default=True,
+    ),
+    st.Page(
+        DASHBOARD / "pages/1_Visao_Geral_Fiscal.py",
+        title="Visão Geral Fiscal",
+    ),
+    st.Page(
+        DASHBOARD / "pages/2_Receitas.py",
+        title="Receitas",
+    ),
+    st.Page(
+        DASHBOARD / "pages/3_Despesas.py",
+        title="Despesas",
+    ),
+    st.Page(
+        DASHBOARD / "pages/4_Fornecedores.py",
+        title="Fornecedores",
+    ),
+    st.Page(
+        DASHBOARD / "pages/5_Execucao_Orcamentaria.py",
+        title="Execução Orçamentária",
+    ),
+]
 
-st.title("Execução Orçamentária Municipal")
-st.markdown(
-    "Dashboard analítico de receitas e despesas da Prefeitura de Juiz de Fora"
-)
-
-st.divider()
-st.markdown(
-    """
-    Use o menu lateral para navegar:
-
-    - Visão Geral Fiscal: Equilíbrio receitas x despesas
-    - Receitas: Arrecadação, sazonalidade, deduções
-    - Despesas: Empenho, liquidação, pagamento
-    - Fornecedores: Concentração e ranking
-    - Execução Orçamentária: Unidades e funções
-    """
-)
+pg = st.navigation(pages)
+pg.run()

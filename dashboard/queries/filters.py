@@ -34,6 +34,19 @@ class FilterState:
             )
         )
 
+    def without_meses(self) -> FilterState:
+        """Mesmo recorte, sem filtro de mês (ex.: último mês no ano escolhido)."""
+        return FilterState(
+            anos=self.anos,
+            meses=(),
+            sk_unidades=self.sk_unidades,
+            cd_funcoes=self.cd_funcoes,
+            sk_naturezas_despesa=self.sk_naturezas_despesa,
+            sk_fontes=self.sk_fontes,
+            sk_fornecedores=self.sk_fornecedores,
+            sk_naturezas_receita=self.sk_naturezas_receita,
+        )
+
 
 def _in_clause(column: str, values: tuple, params: list) -> str | None:
     if not values:

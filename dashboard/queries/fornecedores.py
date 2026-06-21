@@ -24,27 +24,19 @@ def ranking_fornecedores(filters: FilterState) -> tuple[str, list]:
             where {where}
             group by fo.sk_fornecedor, fo.nm_fornecedor, fo.cd_cpf_cnpj
         ),
-        total as (select sum(vl_pago) as geral from base),
-        ranked as (
-            select
-                b.*,
-                case when t.geral > 0
-                    then 100.0 * b.vl_pago / t.geral else null end as pct_total,
-                sum(b.vl_pago) over (order by b.vl_pago desc) as vl_acumulado,
-                t.geral
-            from base b cross join total t
-        )
+        total as (select sum(vl_pago) as geral from base)
         select
-            sk_fornecedor,
-            nm_fornecedor,
-            cd_cpf_cnpj,
-            vl_pago,
-            qtd_empenhos,
-            pct_total,
-            case when geral > 0
-                then 100.0 * vl_acumulado / geral else null end as pct_acumulado
-        from ranked
-        order by vl_pago desc
+            b.sk_fornecedor,
+            b.cd_cpf_cnpj,
+            b.nm_fornecedor,
+            b.vl_pago,
+            b.qtd_empenhos,
+            case
+                when t.geral > 0 then round(100.0 * b.vl_pago / t.geral, 2)
+                else null
+            end as pct_total
+        from base b cross join total t
+        order by b.vl_pago desc
     """
     return sql, params
 

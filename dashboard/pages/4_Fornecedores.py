@@ -9,17 +9,11 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from dashboard.components import charts, disclaimers, filters, kpi, tables
-from dashboard.components import glossary as glossary_ui
-from dashboard.components import narrative as narrative_ui
+from dashboard.components import charts, filters, kpi, tables
 from dashboard.queries import fornecedores
 from dashboard.utils.db import run_query
 from dashboard.utils.formatting import fmt_pct
 from dashboard.utils.glossary import termo
-from dashboard.utils.narrative import (
-    insight_concentracao_pareto,
-    insight_top_fornecedor,
-)
 
 st.set_page_config(page_title="Fornecedores", layout="wide")
 filters.render_sidebar_filters()
@@ -30,19 +24,16 @@ st.caption(
     "Veja quais empresas e pessoas mais recebem dinheiro público e se há "
     "concentração de pagamentos."
 )
-disclaimers.render_data_coverage()
+
 
 with st.expander("O que você quer descobrir?", expanded=False):
     st.markdown(
         """
-- **Quem mais recebeu?** — seção 1 (resumo e ranking em barras).
-- **Há concentração em poucos fornecedores?** — seção 2 (Pareto e tabela).
-- **Como evoluiu um fornecedor específico?** — seção 3 (linha do tempo).
+- **Quem mais recebeu?** Seção 1.
+- **Há concentração em poucos fornecedores?** Seção 2.
+- **Como evoluiu um fornecedor específico?** Seção 3.
         """
     )
-st.caption(
-    "Os números seguem o recorte escolhido nos filtros da barra lateral."
-)
 
 df_rank = run_query(*fornecedores.ranking_fornecedores(flt))
 
@@ -87,14 +78,6 @@ if not df_rank.empty:
             ),
         ]
     )
-    st.caption(
-        "O percentual do líder e o total usam a mesma base agregada da "
-        "consulta; o ranking exibido limita quantidade de linhas."
-    )
-    narrative_ui.insight_box(
-        insight_top_fornecedor(nm, vl_top, pct_top),
-        tone="info",
-    )
 else:
     st.info("Sem pagamentos a fornecedores no recorte dos filtros.")
 
@@ -102,8 +85,6 @@ st.divider()
 st.markdown('<a id="fornecedores-s2"></a>', unsafe_allow_html=True)
 st.subheader("2. Concentração de pagamentos")
 if not df_rank.empty:
-    _, pareto_explicacao = termo("pareto")
-    st.markdown(f"**O que é a curva de Pareto?** {pareto_explicacao}")
     df_rank["label"] = df_rank["nm_fornecedor"].fillna(df_rank["cd_cpf_cnpj"])
     charts.bar_horizontal(
         df_rank.head(15),
@@ -115,31 +96,19 @@ if not df_rank.empty:
             "Identifica concentração de recursos em poucos fornecedores."
         ),
     )
-    charts.pareto_chart(
-        df_rank.head(20),
-        x="label",
-        y="vl_pago",
-        y2="pct_acumulado",
-        titulo="Curva de concentração (Top 20)",
-        legenda="Barras: valor; linha: % acumulado do total pago",
-        descricao="Se poucos fornecedores concentram grande parte dos "
-        "pagamentos, há risco de dependência.",
-    )
-    pct_cinco_b = sum(
-        float(r["pct_total"])
-        for _, r in df_rank.head(5).iterrows()
-        if r["pct_total"] is not None
-    )
-    narrative_ui.insight_box(
-        insight_concentracao_pareto(pct_cinco_b, 5),
-        tone="warning" if pct_cinco_b > 60.0 else "info",
-    )
     tables.render_table(
-        df_rank,
-        titulo="Ranking completo (consulta)",
+        df_rank[
+            [
+                "cd_cpf_cnpj",
+                "nm_fornecedor",
+                "vl_pago",
+                "qtd_empenhos",
+                "pct_total",
+            ]
+        ],
+        titulo="Ranking completo",
         descricao="Inclui quantidade de empenhos e participação percentual.",
     )
-    glossary_ui.glossary_expander(titulo="Glossário (inclui Pareto)")
 else:
     st.info("Sem dados de fornecedores para gráficos.")
 
