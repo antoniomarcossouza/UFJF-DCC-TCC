@@ -93,7 +93,7 @@ st.caption(
 df_func = run_query(*unidades.execucao_por_funcao(flt))
 if not df_func.empty:
     df_func["rotulo"] = (
-        df_func["ds_funcao"] + " — " + df_func["ds_subfuncao"]
+        df_func["ds_funcao"] + " - " + df_func["ds_subfuncao"]
     )
     charts.grouped_bar(
         df_func.head(20),
@@ -106,7 +106,7 @@ if not df_func.empty:
         },
         titulo="Execução por função e subfunção (top 20)",
         legenda="Áreas de governo + estágios da despesa",
-        descricao="Ex.: Saúde — Administração Geral agrupa despesas da função 10 "
+        descricao="Ex.: Saúde - Administração Geral agrupa despesas da função 10"
         "e subfunção 122.",
     )
     _, h_func = termo("funcao")

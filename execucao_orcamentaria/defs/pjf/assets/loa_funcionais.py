@@ -9,7 +9,7 @@ from dagster.components import definitions
 from dagster_duckdb import DuckDBResource
 
 from execucao_orcamentaria.defs.filesystem.resources import LocalFSResource
-from execucao_orcamentaria.defs.stn.partitions import year_partition_stn
+from execucao_orcamentaria.defs.pjf.partitions import year_partition_loa
 from execucao_orcamentaria.parsers.loa_funcionais import extract_funcionais_zip
 from execucao_orcamentaria.utils.duckdb import overwrite_partition_in_duckdb
 
@@ -89,7 +89,7 @@ def read_loa_funcionais(
 
 
 @dg.asset(
-    partitions_def=year_partition_stn,
+    partitions_def=year_partition_loa,
     kinds={"zip", "pdf", "pandas", "duckdb"},
     group_name="raw",
 )
@@ -122,7 +122,7 @@ def pjf_loa_funcao(
 
 
 @dg.asset(
-    partitions_def=year_partition_stn,
+    partitions_def=year_partition_loa,
     deps=[pjf_loa_funcao],
     kinds={"zip", "pdf", "pandas", "duckdb"},
     group_name="raw",

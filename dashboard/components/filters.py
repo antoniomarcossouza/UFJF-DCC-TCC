@@ -26,7 +26,6 @@ from dashboard.utils.filter_persistence import (
     read_filter_query_params,
 )
 
-# Chaves em st.session_state — compartilhadas entre todas as páginas
 K_ANOS = "global_filter_anos"
 K_MESES = "global_filter_meses"
 K_UNIDADES = "global_filter_unidades"

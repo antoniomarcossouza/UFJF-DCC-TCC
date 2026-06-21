@@ -1,4 +1,4 @@
-# LOA PJF — Classificação funcional (DimLOA)
+# LOA PJF - Classificação funcional (DimLOA)
 
 ## Fonte
 
@@ -18,7 +18,7 @@ Função e subfunção são **independentes** na LOA PJF (combinação livre na 
 
 | Camada | Artefato |
 |--------|----------|
-| Dagster | `pjf_loa_funcao`, `pjf_loa_subfuncao` (partição anual `%Y`) |
+| Dagster | `pjf_loa_funcao`, `pjf_loa_subfuncao` (partição **2026** apenas; `%Y`) |
 | Raw FS | `data/pjf_loa_funcionais/{ano}.zip` |
 | DuckDB | `stg.pjf_loa_funcao`, `stg.pjf_loa_subfuncao` |
 | Staging | `stg_pjf_loa_funcao`, `stg_pjf_loa_subfuncao` |
@@ -26,8 +26,8 @@ Função e subfunção são **independentes** na LOA PJF (combinação livre na 
 
 ## Dependências de sistema
 
-- `poppler-utils` — `pdftotext`, `pdftoppm`
-- `tesseract-ocr` + `tesseract-ocr-por` — OCR dos PDFs escaneados
+- `poppler-utils` - `pdftotext`, `pdftoppm`
+- `tesseract-ocr` + `tesseract-ocr-por` - OCR dos PDFs escaneados
 
 Parser: [`execucao_orcamentaria/parsers/loa_funcionais.py`](../execucao_orcamentaria/parsers/loa_funcionais.py)
 
@@ -51,8 +51,9 @@ dbt build --select stg_pjf_loa_funcao+ stg_pjf_loa_subfuncao+
 ## Atualização anual
 
 1. Confirmar URL do zip no portal de transparência da PJF.
-2. Materializar partição do novo exercício no Dagster.
-3. Rodar `dbt build` nos modelos LOA.
+2. Validar/adaptar o parser ao layout dos PDFs do novo exercício (cada ano pode diferir).
+3. Ampliar `year_partition_loa` em `execucao_orcamentaria/defs/pjf/partitions.py`.
+4. Materializar a nova partição no Dagster e rodar `dbt build` nos modelos LOA.
 
 ## Limitações
 

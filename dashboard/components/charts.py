@@ -43,7 +43,7 @@ def render_chart(
     *,
     titulo: str,
     legenda: str,
-    descricao: str,
+    descricao: str | None,
 ) -> None:
     st.subheader(titulo)
     fig.update_layout(dragmode=False)
@@ -55,7 +55,8 @@ def render_chart(
         config=_PLOTLY_CONFIG,
     )
     st.caption(f"{legenda}")
-    st.markdown(f":grey[{descricao}]")
+    if descricao:
+        st.markdown(f":grey[{descricao}]")
 
 
 def line_series(
@@ -66,7 +67,7 @@ def line_series(
     *,
     titulo: str,
     legenda: str,
-    descricao: str,
+    descricao: str | None = None,
     x_label: str = "Período",
     y_log_scale: bool = False,
 ) -> None:
@@ -107,7 +108,7 @@ def bar_horizontal(
     *,
     titulo: str,
     legenda: str,
-    descricao: str,
+    descricao: str | None = None,
     color: str | None = None,
 ) -> None:
     if df.empty:

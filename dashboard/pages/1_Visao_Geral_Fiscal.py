@@ -24,8 +24,7 @@ flt = filters.get_filters()
 
 st.title("Visão Geral Fiscal")
 st.caption(
-    "Veja se a prefeitura tem fechado o caixa no azul ou no vermelho — "
-    "quanto entrou, quanto saiu e o saldo."
+    "Veja se a prefeitura tem fechado o caixa no azul ou no vermelho"
 )
 
 df_kpi = run_query(*fiscal.kpis_fiscal(flt))

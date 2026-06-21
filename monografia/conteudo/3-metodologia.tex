@@ -15,7 +15,7 @@ A análise documental tem como base o Portal da Transparência da Prefeitura de 
 
 \subsection*{Desenvolvimento Técnico do Data Warehouse}
 
-O desenvolvimento segue a metodologia de Kimball em quatro passos: identificação dos processos de negócio (execução orçamentária de despesas e de receitas), definição da granularidade, identificação das dimensões relevantes (tempo, unidade administrativa, função programática, natureza da despesa, natureza da receita, fornecedor, fonte de recurso) e identificação dos fatos (valores empenhado, liquidado e pago para despesa; previsto e arrecadado para receita). A pilha técnica combina Dagster para orquestração, Python e \texttt{pandas} para extração, DuckDB como banco analítico embarcado, dbt para a modelagem em SQL e Streamlit para os \textit{dashboards}. As decisões técnicas detalhadas vivem no Capítulo~\ref{cap:dw}.
+O desenvolvimento segue a metodologia de Kimball em quatro passos: identificação dos processos de negócio (execução orçamentária de despesas e de receitas), definição da granularidade, identificação das dimensões relevantes (tempo, unidade administrativa, funcional programática, função e subfunção LOA, natureza da despesa, natureza da receita, fornecedor, fonte de recurso, empenho) e identificação dos fatos (valores empenhado, liquidado e pago para despesa; previsto e arrecadado para receita). A pilha técnica combina Dagster para orquestração, Python e \texttt{pandas} para extração, DuckDB como banco analítico embarcado, dbt para a modelagem em SQL e Streamlit para os \textit{dashboards}. As decisões técnicas detalhadas vivem no Capítulo~\ref{cap:dw}.
 
 \subsection*{Estudo de Caso}
 

@@ -25,7 +25,7 @@ Ambos redirecionam para arquivo final `.xlsx` no CDN do Tesouro.
 Somente **receitas** tem ementario STN unificado nesta implementacao (XLS anual via Dagster).
 
 Para **classificacao funcional** (funcao e subfuncao), a referencia adotada e a
-**LOA PJF** — ver [`references/LOA_PJF.md`](LOA_PJF.md) e asset Dagster
+**LOA PJF** - ver [`references/LOA_PJF.md`](LOA_PJF.md) e asset Dagster
 `pjf_loa_funcao` / `pjf_loa_subfuncao`.
 
 Natureza de despesa vem das descricoes publicadas na execucao mensal PJF

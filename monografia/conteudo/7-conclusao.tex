@@ -5,17 +5,17 @@
 
 O trabalho propôs e implementou um Data Warehouse para análise da execução orçamentária de Juiz de Fora, com o duplo objetivo de tornar dados públicos analiticamente acessíveis e de oferecer um modelo replicável para outros municípios. A revisão dos objetivos específicos, contra o que foi efetivamente entregue, ajuda a fixar o que esse trabalho contribui.
 
-O primeiro objetivo previa a coleta e documentação de dados de receitas e despesas do Portal da Transparência da Prefeitura. Foi atendido: o \textit{pipeline} de extração consome quatro fontes (despesa mensal consolidada, receita mensal comparativa, receita mensal prevista e ementário de natureza de receita da STN), com tratamento explícito de heterogeneidades como mudança de \textit{layout} no meio do histórico e cabeçalho de planilha sem posição fixa.
+O primeiro objetivo previa a coleta e documentação de dados de receitas e despesas do Portal da Transparência da Prefeitura. Foi atendido: o \textit{pipeline} de extração consome seis fontes (despesa mensal consolidada, receita mensal comparativa, receita mensal prevista, ementário de natureza de receita da STN, função LOA e subfunção LOA do exercício 2026), com tratamento explícito de heterogeneidades como mudança de \textit{layout} no meio do histórico, cabeçalho de planilha sem posição fixa e PDFs escaneados da LOA.
 
-O segundo objetivo previa a modelagem dimensional segundo Kimball. Foi atendido. O \textit{warehouse} conta com oito dimensões e três tabelas de fatos organizadas em esquema estrela compartilhando \texttt{dim\_tempo}. Cada decisão de granularidade foi escolhida em função do que a fonte de fato publica, sem inventar atomicidade ausente nos dados originais.
+O segundo objetivo previa a modelagem dimensional segundo Kimball. Foi atendido. O \textit{warehouse} conta com dez dimensões e três tabelas de fatos organizadas em esquema estrela compartilhando \texttt{dim\_tempo}. Cada decisão de granularidade foi escolhida em função do que a fonte de fato publica, sem inventar atomicidade ausente nos dados originais.
 
 O terceiro objetivo previa a implementação de processos de ETL. Foi atendido com Dagster como orquestrador, Python e \texttt{pandas} para extração, DuckDB como banco analítico e dbt para modelagem em SQL. A unidade de idempotência foi definida como partição temporal e três mecanismos garantem que a reexecução da mesma partição produza o mesmo estado final do \textit{warehouse}.
 
-O quarto objetivo previa a construção de \textit{dashboards} interativos. Foi atendido. Sete páginas analíticas em Streamlit consomem o \textit{warehouse} e respondem perguntas como execução orçamentária por área, evolução temporal de receitas, concentração de fornecedores e desvio entre previsão e arrecadação. \comment[inline]{Quando o Capítulo~\ref{cap:resultados} estiver escrito, retomar aqui os indicadores mais relevantes observados nos dados de Juiz de Fora.}
+O quarto objetivo previa a construção de \textit{dashboards} interativos. Foi atendido. Sete páginas em Streamlit (cinco analíticas, além de Início e Glossário) consomem o \textit{warehouse} e respondem perguntas como execução orçamentária por área, evolução temporal de receitas, concentração de fornecedores e desvio entre previsão e arrecadação. \comment[inline]{Quando o Capítulo~\ref{cap:resultados} estiver escrito, retomar aqui os indicadores mais relevantes observados nos dados de Juiz de Fora.}
 
 O quinto objetivo previa a avaliação de usabilidade. \comment[inline]{Sintetizar os achados do Capítulo~\ref{cap:avaliacao} aqui, com base na comparação entre as visualizações produzidas e o formato original do portal.}
 
-Além dos objetivos declarados, o trabalho contribui de três formas adicionais. Primeiro, oferece uma referência arquitetural concreta para projetos de DW municipal, com escolhas técnicas explicitadas e justificadas. Segundo, documenta de forma estruturada as limitações da fonte (ausência de orçamento autorizado, granularidade só mensal, classificação MCASP incompleta), que costumam ser tratadas como ruído silencioso em projetos similares. Terceiro, articula a literatura técnica de Kimball com a tradição freireana de educação libertadora, indicando que a arquitetura de dados não é decisão neutra.
+Além dos objetivos declarados, o trabalho contribui de três formas adicionais. Primeiro, oferece uma referência arquitetural concreta para projetos de DW municipal, com escolhas técnicas explicitadas e justificadas. Segundo, documenta de forma estruturada as limitações da fonte (ausência de dotação autorizada na LOA, granularidade só mensal na despesa, hierarquia MCASP incompleta além de função e subfunção), que costumam ser tratadas como ruído silencioso em projetos similares. Terceiro, articula a literatura técnica de Kimball com a tradição freireana de educação libertadora, indicando que a arquitetura de dados não é decisão neutra.
 
 \section{Considerações Finais}
 
@@ -29,9 +29,9 @@ A leitura freireana ganha contorno técnico nesse ponto. Conscientização orça
 
 A continuação natural do trabalho segue cinco direções concretas, ordenadas por relevância para o controle social:
 
-(1) Integração do orçamento autorizado pela LOA, viabilizando indicadores de percentual de execução sobre o autorizado, que são a métrica padrão usada por órgãos de controle.
+(1) Integração da dotação autorizada pela LOA (valores previstos na lei por unidade e natureza), viabilizando indicadores de percentual de execução sobre o autorizado, que são a métrica padrão usada por órgãos de controle. A classificação funcional (função e subfunção) do exercício 2026 já está no \textit{warehouse}.
 
-(2) Decomposição da funcional programática em dimensões separadas para função, subfunção, programa e ação, com base no ementário oficial da STN. Essa decomposição substitui o dicionário ad hoc de classificação de funções hoje presente no código do \textit{dashboard}.
+(2) Desagregação da funcional programática em programa e ação, com \textit{parsers} LOA adaptados a exercícios anteriores (cada ano publica PDFs com \textit{layout} próprio) e, se necessário, ementários oficiais da STN para níveis ainda ausentes.
 
 (3) Captura de licitações e contratos como processos de negócio adicionais, permitindo rastrear a cadeia completa do gasto (de licitação a pagamento) e analisar tempo médio entre etapas.
 

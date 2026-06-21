@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: dim_tempo
-    description: "Calendário diário; sk_tempo = h(strftime(data, %Y-%m-%d)) — fatos reutilizam a mesma expressão."
+    description: "Calendário diário; sk_tempo = h(strftime(data, %Y-%m-%d)): fatos reutilizam a mesma expressão."
     columns:
       - name: sk_tempo
         data_tests:

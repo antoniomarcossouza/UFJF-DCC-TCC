@@ -87,7 +87,7 @@ st.subheader("2. Concentração de pagamentos")
 if not df_rank.empty:
     df_rank["label"] = df_rank["nm_fornecedor"].fillna(df_rank["cd_cpf_cnpj"])
     charts.bar_horizontal(
-        df_rank.head(15),
+        df_rank.head(20),
         y="label",
         x="vl_pago",
         titulo="Fornecedores que mais receberam pagamentos (Top 20)",
@@ -108,6 +108,22 @@ if not df_rank.empty:
         ],
         titulo="Ranking completo",
         descricao="Inclui quantidade de empenhos e participação percentual.",
+        column_config={
+            "cd_cpf_cnpj": st.column_config.TextColumn("CPF/CNPJ"),
+            "nm_fornecedor": st.column_config.TextColumn("Fornecedor"),
+            "vl_pago": st.column_config.NumberColumn(
+                "Valor pago",
+                format="R$ %.2f",
+            ),
+            "qtd_empenhos": st.column_config.NumberColumn(
+                "Qtd. empenhos",
+                format="%d",
+            ),
+            "pct_total": st.column_config.NumberColumn(
+                "Participação (%)",
+                format="%.2f%%",
+            ),
+        },
     )
 else:
     st.info("Sem dados de fornecedores para gráficos.")

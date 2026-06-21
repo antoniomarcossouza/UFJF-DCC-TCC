@@ -32,9 +32,8 @@ with st.expander("O que você quer descobrir?", expanded=False):
 - Quanto já saiu efetivamente do caixa? Seção 1.
 - O empenhado virou pagamento? Seção 1.
 - Como a despesa evoluiu no período? Seção 2.
-- Em quais áreas a prefeitura mais gasta? Seção 3.
-- Em que tipo de despesa o dinheiro é usado? Seção 4.
-- Pagamentos concentrados no fim do período? Seção 5.
+- Em que tipo de despesa o dinheiro é usado? Seção 3.
+- Pagamentos concentrados no fim do período? Seção 4.
         """
     )
 
