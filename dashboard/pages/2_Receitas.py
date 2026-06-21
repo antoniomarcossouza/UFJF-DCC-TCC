@@ -267,7 +267,7 @@ if not df_mensal.empty:
         legenda="Eixo X: mês/ano; linhas: arrecadado e previsto mensal.",
         descricao="Detalhe mês a mês no mesmo recorte de mês/natureza.",
         x_label="Período",
-        y_log_scale=True
+        y_log_scale=True,
     )
 else:
     st.info("Sem série mensal para o filtro atual.")
@@ -277,7 +277,7 @@ st.markdown('<a id="receitas-s4"></a>', unsafe_allow_html=True)
 st.subheader("4. Previsto vs realizado")
 pi_label, pi_desc = termo("previsao_atualizada")
 rr_label, rr_desc = termo("receita_realizada")
-st.markdown(f"**{pi_label}** — {pi_desc}  \n**{rr_label}** — {rr_desc}")
+st.markdown(f"**{pi_label}**: {pi_desc}  \n**{rr_label}**: {rr_desc}")
 if vl_prev is not None and vl_arr_ano is not None:
     progress.previsto_realizado_bar(
         vl_arr_ano,
@@ -289,13 +289,9 @@ else:
         "Indicador indisponível (dados de previsão ou realizado ausentes)."
     )
 
-df_abaixo = run_query(*receitas.receitas_abaixo_previsto(flt))
-if not df_abaixo.empty:
-    st.caption(
-        "Naturezas com realização abaixo de 80% da previsão atualizada "
-        "(tabela completa):"
-    )
-    df_show = df_abaixo.copy()
+df_prev_nat = run_query(*receitas.previsto_realizado_por_natureza(flt))
+if not df_prev_nat.empty:
+    df_show = df_prev_nat.copy()
     df_show["ds_natureza_receita"] = df_show["ds_natureza_receita"].apply(
         limpar_rotulo_natureza_receita
     )
@@ -310,7 +306,6 @@ if not df_abaixo.empty:
     )
     tables.render_table(
         df_show,
-        descricao="Ordenado do menor para o maior percentual de realização.",
+        titulo="Realização por natureza da receita",
+        descricao="Inclui todas as naturezas com meta definida no período.",
     )
-else:
-    st.info("Nenhuma natureza abaixo de 80% da previsão neste recorte.")

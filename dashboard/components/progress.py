@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from dashboard.utils.formatting import fmt_brl, fmt_pct
+from dashboard.utils.formatting import fmt_brl_compact, fmt_pct
 
 
 def previsto_realizado_bar(
@@ -20,13 +20,7 @@ def previsto_realizado_bar(
     ratio = min(1.0, max(0.0, realizado / previsto))
     pct_val = 100.0 * realizado / previsto
     st.progress(ratio)
-    st.caption(
-        f"{fmt_brl(realizado)} de {fmt_brl(previsto)} "
-        f"({fmt_pct(pct_val)}) — {ano}"
-    )
-    if pct_val < 60.0:
-        st.error("Atenção: realização bem abaixo do previsto.")
-    elif pct_val < 90.0:
-        st.warning("Realização abaixo do previsto em parte relevante da meta.")
-    else:
-        st.success("Realização próxima ou acima do esperado para a meta.")
+    c1, c2, c3 = st.columns(3)
+    c1.markdown(f"**Realizado**  \n{fmt_brl_compact(realizado)}")
+    c2.markdown(f"**Previsto**  \n{fmt_brl_compact(previsto)}")
+    c3.markdown(f"**Execução**  \n{fmt_pct(pct_val)}")
