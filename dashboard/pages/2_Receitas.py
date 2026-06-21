@@ -236,6 +236,7 @@ if not df_anual.empty:
         legenda="Linhas: arrecadado e soma do previsto mensal por ano.",
         descricao="Compara meta acumulada no ano com o que entrou.",
         x_label="Ano",
+        y_log_scale=True,
     )
     vals = {
         int(r["nu_ano"]): float(r["vl_arrecadada"])
@@ -266,6 +267,7 @@ if not df_mensal.empty:
         legenda="Eixo X: mês/ano; linhas: arrecadado e previsto mensal.",
         descricao="Detalhe mês a mês no mesmo recorte de mês/natureza.",
         x_label="Período",
+        y_log_scale=True
     )
 else:
     st.info("Sem série mensal para o filtro atual.")

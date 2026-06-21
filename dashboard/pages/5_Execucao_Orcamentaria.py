@@ -31,7 +31,6 @@ st.caption(
     "orçamento (empenho, liquidação e pagamento)."
 )
 disclaimers.render_data_coverage()
-disclaimers.render_orcamento_autorizado_aviso()
 
 with st.expander("O que você quer descobrir?", expanded=False):
     st.markdown(

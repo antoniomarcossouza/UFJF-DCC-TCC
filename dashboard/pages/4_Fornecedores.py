@@ -1,5 +1,3 @@
-"""Página: Fornecedores (visão cidadão)."""
-
 from __future__ import annotations
 
 import sys
@@ -111,8 +109,8 @@ if not df_rank.empty:
         df_rank.head(15),
         y="label",
         x="vl_pago",
-        titulo="Fornecedores que mais receberam pagamentos",
-        legenda="Valor total pago no período (top 15)",
+        titulo="Fornecedores que mais receberam pagamentos (Top 20)",
+        legenda="Valor total pago no período",
         descricao=(
             "Identifica concentração de recursos em poucos fornecedores."
         ),
@@ -122,7 +120,7 @@ if not df_rank.empty:
         x="label",
         y="vl_pago",
         y2="pct_acumulado",
-        titulo="Curva de concentração (Pareto)",
+        titulo="Curva de concentração (Top 20)",
         legenda="Barras: valor; linha: % acumulado do total pago",
         descricao="Se poucos fornecedores concentram grande parte dos "
         "pagamentos, há risco de dependência.",
@@ -151,7 +149,7 @@ st.subheader("3. Evolução por fornecedor")
 if not df_rank.empty:
     labels = {
         r["sk_fornecedor"]: f"{r['nm_fornecedor']} ({r['cd_cpf_cnpj']})"
-        for _, r in df_rank.head(50).iterrows()
+        for _, r in df_rank.iterrows()
     }
     sk_sel = st.selectbox(
         "Selecione o fornecedor",
@@ -164,20 +162,23 @@ if not df_rank.empty:
             df_evo["periodo"] = (
                 df_evo["sg_mes"] + "/" + df_evo["nu_ano"].astype(str)
             )
+            st.metric(
+                "Empenhos distintos (período)",
+                int(df_evo["qtd_empenhos"].sum()),
+            )
             charts.line_series(
                 df_evo,
                 x="periodo",
                 y_cols=["vl_pago"],
                 labels={"vl_pago": "Pago"},
                 titulo="Evolução temporal de pagamentos",
-                legenda="Pagamentos mensais ao fornecedor selecionado",
+                legenda="Pagamentos mensais ao fornecedor selecionado "
+                "(eixo Y em escala logarítmica)",
                 descricao="Acompanha tendência de pagamentos e volume de "
-                "empenhos distintos.",
+                "empenhos distintos. Meses sem pagamento não aparecem no "
+                "gráfico log.",
                 x_label="Período",
-            )
-            st.metric(
-                "Empenhos distintos (período)",
-                int(df_evo["qtd_empenhos"].sum()),
+                y_log_scale=True,
             )
         else:
             st.info("Sem evolução mensal para este fornecedor no recorte.")
