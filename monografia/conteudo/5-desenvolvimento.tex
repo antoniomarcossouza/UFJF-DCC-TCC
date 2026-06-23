@@ -63,7 +63,7 @@ Dagster & 1.12 & Orquestrador de \textit{assets} \\
 DuckDB & 1.5 & Banco analítico embarcado, formato OLAP colunar \\
 dbt-core & 1.11 & Modelagem dimensional em SQL \\
 dbt-duckdb & 1.10 & Adaptador dbt para DuckDB \\
-\texttt{dbt\_utils} & 1.3 & Macros para chaves \textit{surrogate} e \textit{date spine} \\
+\texttt{dbt\_utils} & 1.3 & Macros para chaves substitutas e \textit{date spine} \\
 Streamlit & 1.57 & Construção dos \textit{dashboards} \\
 Plotly & 6.7 & Visualizações interativas \\
 \hline
@@ -196,9 +196,9 @@ O modelo inclui dez dimensões, descritas na Tabela~\ref{tab:dimensoes}.
 
 \texttt{dim\_funcao} e \texttt{dim\_subfuncao} não se ligam diretamente aos fatos: a execução mensal traz a funcional programática composta em \texttt{dim\_funcional\_pragmatica}. O \textit{dashboard} extrai função e subfunção dessa \textit{string} e faz \textit{join} com as dimensões LOA para exibir nomes oficiais do exercício.
 
-\subsection{Chaves \textit{Surrogate}}
+\subsection{Chaves Substitutas}
 
-As dimensões usam chaves \textit{surrogate} geradas por \texttt{dbt\_utils.generate\_surrogate\_key} (MD5 sobre concatenação determinística dos campos naturais). Nas dimensões de despesa derivadas do consolidado mensal, a chave nasce no modelo \textit{intermediate} e é reaproveitada no \textit{warehouse}; \texttt{dim\_tempo} usa a mesma macro sobre a data do dia. Kimball recomenda esse padrão por dois motivos operacionais. A chave não muda se um rótulo de exibição for corrigido na fonte. A junção entre fatos volumosos e dimensões usa um único \texttt{varchar(32)}. O hash determinístico garante que reprocessar o pipeline recria as mesmas chaves, preservando idempotência. Sem chave \textit{surrogate}, uma correção de grafia em \texttt{dim\_fornecedor} quebraria o histórico de junção ou exigiria atualização em cascata nos fatos.
+As dimensões usam chaves substitutas geradas por \texttt{dbt\_utils.generate\_surrogate\_key} (MD5 sobre concatenação determinística dos campos naturais). Nas dimensões de despesa derivadas do consolidado mensal, a chave nasce no modelo \textit{intermediate} e é reaproveitada no \textit{warehouse}; \texttt{dim\_tempo} usa a mesma macro sobre a data do dia. Kimball recomenda esse padrão por dois motivos operacionais. A chave não muda se um rótulo de exibição for corrigido na fonte. A junção entre fatos volumosos e dimensões usa um único \texttt{varchar(32)}. O hash determinístico garante que reprocessar o pipeline recria as mesmas chaves, preservando idempotência. Sem chave substituta, uma correção de grafia em \texttt{dim\_fornecedor} quebraria o histórico de junção ou exigiria atualização em cascata nos fatos.
 
 \subsection{Esquema Estrela}
 

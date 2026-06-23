@@ -142,9 +142,12 @@ def _init_multiselect(
     options: dict[str | int, str],
     *,
     default_first: bool = False,
+    default_latest: bool = False,
 ) -> None:
     if state_key not in st.session_state:
-        if default_first and options:
+        if default_latest and options:
+            st.session_state[state_key] = [max(options)]
+        elif default_first and options:
             st.session_state[state_key] = [next(iter(options))]
         else:
             st.session_state[state_key] = []
@@ -155,7 +158,7 @@ def render_sidebar_filters() -> FilterState:
     _hydrate_from_url()
 
     anos_opts = _options(*dim_options.anos_disponiveis())
-    _init_multiselect(K_ANOS, anos_opts)
+    _init_multiselect(K_ANOS, anos_opts, default_latest=True)
     _prune_selection(K_ANOS, list(anos_opts.keys()))
     st.sidebar.multiselect(
         "Ano",
