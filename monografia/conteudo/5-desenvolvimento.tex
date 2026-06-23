@@ -4,7 +4,7 @@
 Este capítulo documenta as decisões técnicas na construção do DW proposto. A exposição segue o fluxo dos dados: fontes públicas, extração, \textit{staging}, modelagem dimensional e camada analítica que alimenta os \textit{dashboards}.
 \section{Visão Geral da Arquitetura}
 
-O sistema se organiza em quatro camadas, mostradas na Figura~\ref{fig:arquitetura-dw}: extração, \textit{staging}, \textit{warehouse} dimensional e consumo via \textit{dashboards}. Separar fisicamente essas camadas atende a uma exigência operacional concreta: cada uma tem função definida e pode ser reexecutada sem arrastar as demais. Coleta, transformações e apresentação ficam desacopladas. Portais municipais podem mudar \textit{layout}; quando isso ocorre, o ajuste tende a ficar confinado à extração e ao \textit{staging}, sem reescrever consultas analíticas que já alimentam os \textit{dashboards}.
+O sistema se organiza em camadas, mostradas na Figura~\ref{fig:arquitetura-dw}: extração, \textit{staging}, \textit{warehouse} dimensional e consumo via \textit{dashboards}. Separar fisicamente essas camadas atende a uma exigência operacional concreta: cada uma tem função definida e pode ser reexecutada sem arrastar as demais. Coleta, transformações e apresentação ficam desacopladas. Portais municipais podem mudar \textit{layout}; quando isso ocorre, o ajuste tende a ficar confinado à extração e ao \textit{staging}, sem reescrever consultas analíticas que já alimentam os \textit{dashboards}.
 
 \begin{figure}[ht]
 \begin{center}
@@ -139,7 +139,7 @@ Seis \textit{views} dbt cobrem as seis fontes brutas (despesa, receita comparati
 
 \section{Modelo Dimensional}
 
-A modelagem segue os quatro passos de Kimball: processos de negócio, granularidade, dimensões e fatos. Dois processos foram tratados em separado: \textbf{execução de despesa} e \textbf{execução de receita}. Unificá-los num único fato misturaria grãos, dimensões e calendários de publicação distintos. Despesa e receita no portal PJF saem em arquivos diferentes, com colunas e periodicidade próprias; forçar um fato único criaria colunas esparsas e consultas analíticas mais frágeis.
+A modelagem segue a metodologia de Kimball: processos de negócio, granularidade, dimensões e fatos. Dois processos foram tratados em separado: execução de despesa e execução de receita. Tentar unificá-los num único fato misturaria grãos, dimensões e calendários de publicação distintos. Despesas e receitas no portal PJF saem em arquivos diferentes, com colunas e periodicidade próprias; forçar um fato único criaria colunas esparsas e consultas analíticas mais frágeis.
 
 \subsection{Tabelas de Fatos}
 
@@ -161,9 +161,9 @@ O modelo conta com três tabelas de fatos, descritas na Tabela~\ref{tab:fatos}.
 \end{tabular*}
 \end{table}
 
-A granularidade de \texttt{fct\_despesa} exige cuidado. No ideal kimballiano, cada linha seria um empenho ou um estágio (empenho, liquidação, pagamento). O portal, porém, publica relatórios mensais já consolidados: cada linha agrega valores por combinação de dimensões. Modelar nesse grão respeita o que a fonte entrega, sem simular atomicidade inexistente. A troca é explícita: perguntas sobre transações individuais (um empenho, um pagamento) ficam fora do alcance. Isso vem do portal, não de falha do modelo. Quem compara este DW com sistemas internos da prefeitura precisa entender que o grão aqui é o relatório publicado, não o lançamento contábil.
+Uma observação sobre a granularidade de \texttt{fct\_despesa} é que, no modelo ideal, cada linha seria um empenho ou um estágio (empenho, liquidação, pagamento). O portal, porém, publica relatórios mensais já consolidados: cada linha agrega valores por combinação de dimensões. Modelar nesse grão respeita o que a fonte entrega, sem simular atomicidade inexistente.
 
-\texttt{fct\_receita} e \texttt{fct\_receita\_acumulada} também nascem de semânticas diferentes. O arquivo de previsão mensal traz valor previsto por mês, alimentando \texttt{fct\_receita} após \textit{unpivot}. O comparativo traz acumulados no ano (previsão inicial, previsão atualizada, arrecadada, a realizar), alimentando \texttt{fct\_receita\_acumulada}. Juntar tudo numa tabela única exigiria misturar medidas de ritmo mensal com medidas de saldo anual.
+\texttt{fct\_receita} e \texttt{fct\_receita\_acumulada} também nascem de semânticas diferentes. O arquivo de previsão mensal traz valor previsto por mês, alimentando \texttt{fct\_receita}. O comparativo traz acumulados no ano, alimentando \texttt{fct\_receita\_acumulada}. Juntar tudo numa tabela única exigiria misturar medidas de ritmo mensal com medidas de saldo anual.
 
 \subsection{Dimensões}
 
@@ -192,7 +192,7 @@ O modelo inclui dez dimensões, descritas na Tabela~\ref{tab:dimensoes}.
 \end{tabular}
 \end{table}
 
-\texttt{dim\_natureza\_receita} cruza duas origens. Quando o ementário da STN cobre o código, prevalece a descrição oficial; nos demais casos, entra a descrição publicada pela PJF. Quem consulta o \textit{dashboard} vê nomenclatura nacional padronizada onde ela existe, sem apagar códigos que só aparecem no município. Essa escolha prioriza legibilidade para quem conhece o MCASP sobre fidelidade estrita ao rótulo municipal.
+\texttt{dim\_natureza\_receita} cruza duas origens. Quando o ementário da STN cobre o código, prevalece a descrição oficial; nos demais casos, entra a descrição publicada pela PJF. Quem consulta o \textit{dashboard} vê nomenclatura nacional padronizada onde ela existe, sem apagar códigos que só aparecem no município.
 
 \texttt{dim\_funcao} e \texttt{dim\_subfuncao} não se ligam diretamente aos fatos: a execução mensal traz a funcional programática composta em \texttt{dim\_funcional\_pragmatica}. O \textit{dashboard} extrai função e subfunção dessa \textit{string} e faz \textit{join} com as dimensões LOA para exibir nomes oficiais do exercício.
 
@@ -229,62 +229,56 @@ As ligações entre fatos e dimensões formam três estrelas que compartilham \t
 \end{center}
 \end{figure}
 
-Nenhuma dimensão implementa SCD (\textit{slowly changing dimension}). Todas são tipo 1: guardam só o estado mais recente da fonte. Para descrições de natureza no padrão brasileiro, isso costuma bastar, porque a STN revisa ementários em ciclos anuais e as mudanças são pontuais. Reorganizações administrativas do município, mais raras e mais abruptas, ficariam mal registradas: se uma secretaria muda de nome, o histórico aparece com o rótulo novo, como se sempre tivesse sido assim. Capturá-las exigiria SCD tipo 2, tarefa deixada para evolução futura.
+Nenhuma dimensão implementa SCD (\textit{slowly changing dimension}). Todas são tipo 1: guardam só o estado mais recente da fonte. Para descrições de natureza no padrão brasileiro, isso costuma bastar, porque a STN revisa ementários em ciclos anuais e as mudanças são pontuais. Reorganizações administrativas do município, apesar de raras, ficariam mal registradas: se uma secretaria mudar de nome, o histórico apareceria com o rótulo novo. Capturar essas mudanças exigiria SCD tipo 2.
 
 \section{Processos de ETL e Idempotência}
 
-A unidade de idempotência é a partição temporal nas fontes particionadas: mês de competência nas planilhas PJF e ano de referência na STN. A LOA funcional não usa partição Dagster; a idempotência vem da sobrescrita total das tabelas brutas a cada materialização. Reexecutar o pipeline deve devolver o mesmo \textit{warehouse}, independentemente de quantas cargas anteriores existam. Sem idempotência, cada reprocessamento após correção de \textit{parser} acumularia linhas duplicadas ou deixaria versões antigas convivendo com novas, corrompendo agregações nos \textit{dashboards}. Três mecanismos sustentam essa propriedade.
-
-A estratégia de escrita por fonte (Seção~\ref{sec:extracao}) trata STN com sobrescrita por partição, LOA com sobrescrita total e planilhas PJF com \textit{append} mais deduplicação.
-
-As chaves \textit{surrogate} determinísticas evitam linhas espúrias em dimensões quando uma partição é recarregada: o mesmo conjunto de campos naturais gera o mesmo MD5.
-
-A materialização \textit{table}, e não incremental, nas tabelas de fatos faz o dbt reconstruir o conjunto inteiro a partir do \textit{staging} a cada execução. Para o volume municipal atual, o \textit{full refresh} elimina erros típicos de \textit{merge} incremental mal definido (linhas órfãs, partições não atualizadas). Se o dado crescer, modelos incrementais com chave única estável podem substituir essa escolha sem mudar o contrato dos \textit{dashboards}.
+A unidade de idempotência é a partição temporal nas fontes particionadas: mês de competência nas planilhas PJF e ano de referência na STN. A LOA funcional não usa partição; a idempotência vem da sobrescrita total das tabelas brutas a cada materialização. Reexecutar o pipeline deve devolver o mesmo \textit{warehouse}, independentemente de quantas cargas anteriores existam. Três mecanismos sustentam essa propriedade. A estratégia de escrita por fonte (Seção~\ref{sec:extracao}) trata STN com sobrescrita por partição, LOA com sobrescrita total e planilhas PJF com \textit{append} mais deduplicação. As chaves substitutas determinísticas evitam linhas falsas em dimensões quando uma partição é recarregada: o mesmo conjunto de campos naturais gera o mesmo MD5. A materialização \textit{table}, e não incremental, nas tabelas de fatos faz o dbt reconstruir o conjunto inteiro a partir do \textit{staging} a cada execução. Para o volume municipal atual, o \textit{full refresh} não compromete desempenho e garante que a tabela final reflita exatamente o que veio do \textit{staging}.
 
 \section{Qualidade de Dados e Testes}
 
-Os testes operam em dois níveis principais. No dbt, arquivos \texttt{\_schema.yml} checam unicidade e nulidade de chaves de dimensão, unicidade das combinações de \textit{surrogate keys} nos fatos, presença de medidas e integridade referencial. Em regras de negócio, testes singulares em SQL verificam invariantes de receita: arrecadação acumulada não pode ser menor que o acumulado dos meses anteriores (monotonicidade no ano), e o valor a realizar deve bater com previsão atualizada menos arrecadado no ano. Complementarmente, \texttt{pytest} valida o \textit{parser} da LOA (contagens e códigos esperados do exercício 2026).
+Arquivos \texttt{\_schema.yml} especificam verificações de unicidade e de nulidade nas chaves das dimensões, de unicidade nas combinações de chaves substitutas nos fatos, de presença das medidas e de integridade referencial. Testes singulares em SQL complementam esse conjunto com invariantes de receita: a arrecadação acumulada no exercício não pode ser inferior ao acumulado dos meses anteriores, e o valor a realizar deve coincidir com a previsão atualizada menos o arrecadado no ano.
 
-Em dados fiscais publicados, falha silenciosa custa caro: um valor negativo por erro de \textit{parsing} ou uma quebra de monotonicidade entre meses pode virar conclusão errada sobre execução orçamentária. Imagine interpretar queda de arrecadação quando, na verdade, o acumulado do mês anterior foi sobrescrito com valor menor. O conjunto de testes não cobre tudo, mas ataca as falhas mais prováveis: chave duplicada em dimensão, medida monetária inválida, carga parcial entre meses e \textit{drift} de \textit{schema} após mudança de \textit{layout} na fonte. A Tabela~\ref{tab:dq} resume os testes singulares.
+Em dados fiscais publicados, falha silenciosa custa caro: um valor negativo por erro de \textit{parsing} ou uma quebra de monotonicidade entre meses pode virar conclusão errada sobre execução orçamentária. O conjunto de testes não cobre tudo, mas ataca as falhas mais prováveis: chave duplicada em dimensão, medida monetária inválida, carga parcial entre meses e \textit{drift} de \textit{schema} após mudança de \textit{layout} na fonte. A Tabela~\ref{tab:dq} resume os testes singulares.
 
 \begin{table}[htb]
 \caption{Testes singulares de qualidade de dados}
 \label{tab:dq}
 \centering
 \small
-\begin{tabular}{p{6.5cm} p{6.5cm}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}p{5.6cm}p{8.8cm}@{}}
 \hline
 \textbf{Teste} & \textbf{Invariante verificada} \\
 \hline
-\texttt{dq\_fct\_receita\_acumulada\_nao\_menor\_que\_mes} & Valor acumulado no ano deve ser maior ou igual à arrecadação no mês corrente \\
-\texttt{dq\_fct\_receita\_acumulada\_monotonicidade} & Valor acumulado no ano deve ser não decrescente mês a mês, por natureza \\
-\texttt{dq\_fct\_receita\_vl\_a\_realizar} & Valor a realizar deve coincidir com previsão atualizada menos arrecadado no ano \\
+\begin{minipage}[t]{5.4cm}\raggedright\path{dq_fct_receita_acumulada_nao_menor_que_mes}\end{minipage} & Valor acumulado no ano deve ser maior ou igual à arrecadação no mês corrente \\
+\begin{minipage}[t]{5.4cm}\raggedright\path{dq_fct_receita_acumulada_monotonicidade}\end{minipage} & Valor acumulado no ano deve ser não decrescente mês a mês, por natureza \\
+\begin{minipage}[t]{5.4cm}\raggedright\path{dq_fct_receita_vl_a_realizar}\end{minipage} & Valor a realizar deve coincidir com previsão atualizada menos arrecadado no ano \\
 \hline
-\end{tabular}
+\end{tabular*}
 \end{table}
 
 \section{Limitações da Implementação}
 
-Registrar o que o sistema não faz é tão importante quanto descrever o que faz. Três limitações marcam o recorte atual. Elas delimitam perguntas respondíveis hoje e orientam quem quiser reproduzir ou estender o trabalho.
+Registrar o que o sistema não faz é tão importante quanto descrever o que faz. Três limitações marcam o recorte atual, delimitando perguntas respondíveis hoje e orientam quem quiser reproduzir ou estender o trabalho.
 
 \subsection{Granularidade da Despesa}
 
-A fonte publica relatórios mensais consolidados, não transações individuais. Análises empenho a empenho exigiriam outras bases (sistemas internos da prefeitura, eventualmente obtidos por LAI). O modelo define o grão pela linha do arquivo, mas quem lê \texttt{fct\_despesa} precisa saber que os valores são movimentação mensal por combinação de dimensões, não atos administrativos isolados.
+A fonte publica relatórios mensais consolidados, não transações individuais. Análises empenho a empenho exigiriam outras bases. O modelo define o grão pela linha do arquivo, mas os valores em \texttt{fct\_despesa} são movimentação mensal por combinação de dimensões, não atos administrativos isolados.
 
 \subsection{Ausência de Orçamento Autorizado}
 
-O \textit{warehouse} traz empenhado, liquidado e pago, mas não a dotação autorizada na LOA. A ingestão atual da LOA cobre apenas a classificação funcional (função e subfunção do DimLOA), não os valores autorizados por unidade ou natureza. Sem autorizado, indicadores como percentual de execução sobre o previsto na lei ficam indisponíveis.
+O \textit{warehouse} traz empenhado, liquidado e pago, mas não a dotação autorizada na LOA. A ingestão atual da LOA cobre apenas a classificação funcional, não os valores autorizados por unidade ou natureza. Sem autorizado, indicadores como percentual de execução sobre o previsto na lei ficam indisponíveis.
 
 \subsection{Classificação MCASP Funcional Incompleta}
 
-A dimensão \texttt{dim\_funcional\_pragmatica} guarda o código composto da funcional programática como \textit{string} única nos fatos. Para rotular função e subfunção no \textit{dashboard}, o sistema consulta \texttt{dim\_funcao} e \texttt{dim\_subfuncao}, alimentadas pela LOA PJF do exercício 2026, com \textit{fallback} textual quando o código da execução não consta no ementário carregado. Programa, ação e demais níveis da hierarquia MCASP continuam fora do modelo.
+A dimensão \texttt{dim\_funcional\_pragmatica} guarda o código composto da funcional programática como \textit{string} única nos fatos. Para rotular função e subfunção no \textit{dashboard}, o sistema consulta \texttt{dim\_funcao} e \texttt{dim\_subfuncao}, alimentadas pela LOA PJF do exercício 2026, com \textit{fallback} textual quando o código da execução não consta no ementário carregado.
 
 \subsubsection{Rotulagem LOA e \textit{fallbacks} na execução funcional}
 
-A revisão de qualidade do \textit{dashboard} (recorte completo, sem filtros de ano ou mês) quantificou a cobertura dos rótulos LOA na página Execução Orçamentária. Entre os 126 pares distintos função/subfunção presentes na execução, 18 (14{,}3\,\%) exibem \textit{fallback} do tipo \texttt{Função XX} ou \texttt{Subfunção XXX}: o código aparece na movimentação mensal, mas não foi resolvido contra \texttt{dim\_funcao} ou \texttt{dim\_subfuncao}. Exemplos observados incluem 11/220, 10/310 e 01/031. Os pares de maior volume executado (Saúde, Atenção Básica, 10/301; Administração, Administração Geral, 04/122) recebem nomes corretos da LOA; os \textit{fallbacks} concentram-se em combinações de menor pagamento acumulado. Ou seja, o problema afeta sobretudo fatias pequenas da execução, mas ainda compromete a legibilidade de cortes que podem ser relevantes para auditoria.
+A revisão de qualidade do \textit{dashboard} quantificou a cobertura dos rótulos LOA na página Execução Orçamentária. Entre os 126 pares distintos função/subfunção presentes na execução, 18 (14{,}3\,\%) exibem \textit{fallback} do tipo \texttt{Função XX} ou \texttt{Subfunção XXX}: o código aparece na movimentação mensal, mas não foi resolvido contra \texttt{dim\_funcao} ou \texttt{dim\_subfuncao}. Os pares de maior volume executado recebem nomes corretos da LOA; os \textit{fallbacks} concentram-se em combinações de menor pagamento acumulado. Ou seja, o problema afeta sobretudo fatias pequenas da execução, mas ainda compromete a legibilidade de cortes que podem ser relevantes para auditoria.
 
-No \textit{warehouse} materializado no momento da revisão, \texttt{dim\_funcao} contém 26 registros e \texttt{dim\_subfuncao}, 114, abaixo das 29 funções e 117 subfunções validadas pelo \textit{parser} para o exercício 2026. A lacuna indica perda parcial na etapa OCR (\texttt{pdftoppm} + Tesseract) ou rejeição de linhas pelo validador de \textit{layout}, e não falha de \textit{join} no \textit{dashboard}. A consulta já aplica \texttt{coalesce(ds\_funcao, 'Função ' || cd\_funcao)} por desenho.
+% No \textit{warehouse} materializado no momento da revisão, \texttt{dim\_funcao} contém 26 registros e \texttt{dim\_subfuncao}, 114, abaixo das 29 funções e 117 subfunções validadas pelo \textit{parser} para o exercício 2026. A lacuna indica perda parcial na etapa OCR (\texttt{pdftoppm} + Tesseract) ou rejeição de linhas pelo validador de \textit{layout}, e não falha de \textit{join} no \textit{dashboard}.
 
-Três melhorias aparecem como prioridade para reduzir \textit{fallbacks} sem alterar a interface analítica. Revisão manual ou semi-automática dos PDFs DimLOA após OCR, com tabela de correções versionada (CSV ou \textit{seed} dbt) para códigos sistematicamente omitidos. Ampliação dos testes \texttt{pytest} do \textit{parser} para comparar contagem e lista de códigos extraídos com o ementário de referência, falhando a materialização quando o desvio ultrapassar um limiar (por exemplo, menos de 28 funções). Enriquecimento cruzado com a tabela MCASP da STN ou com códigos já presentes em \texttt{dim\_funcional\_pragmatica} na execução, usando a LOA PJF como fonte primária e o ementário nacional como reserva para códigos ausentes no PDF municipal. A longo prazo, solicitar à prefeitura publicação do DimLOA em formato tabular (\texttt{XLSX} ou \texttt{CSV}) eliminaria a dependência de OCR.
+As seguintes melhorias aparecem como prioridade para reduzir \textit{fallbacks} sem alterar a interface analítica. Revisão manual ou semi-automática dos PDFs após OCR, com tabela de correções versionada (CSV ou \textit{seed} dbt) para códigos sistematicamente omitidos. Enriquecimento cruzado com a tabela MCASP da STN ou com códigos já presentes em \texttt{dim\_funcional\_pragmatica} na execução, usando a LOA PJF como fonte primária e o ementário nacional como reserva para códigos ausentes no PDF municipal. A longo prazo, solicitar à prefeitura publicação dos dados em formato tabular eliminaria a dependência de OCR.
 
-Essas limitações delimitam perguntas respondíveis hoje e apontam extensões concretas: dotação autorizada na LOA, grão mais fino de despesa, desagregação funcional completa (programa e ação), \textit{parser} LOA adaptado a exercícios anteriores e redução dos \textit{fallbacks} funcionais descritos acima. O DW entregue cobre execução publicada no portal. Não substitui o ERP municipal nem fecha sozinho o ciclo orçamentário completo (autorizado, empenhado, liquidado, pago).
+Essas limitações delimitam perguntas respondíveis hoje e apontam extensões concretas: dotação autorizada na LOA, grão mais fino de despesa, desagregação funcional completa, \textit{parser} LOA adaptado a exercícios anteriores e redução dos \textit{fallbacks} funcionais descritos acima.
