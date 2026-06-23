@@ -5,7 +5,7 @@ Este capítulo articula três corpos teóricos que sustentam o restante do traba
 
 \section{Orçamento Público e Transparência Governamental}
 
-O orçamento público brasileiro se organiza em três instrumentos integrados: o Plano Plurianual (PPA), a Lei de Diretrizes Orçamentárias (LDO) e a Lei Orçamentária Anual (LOA) \cite{giacomoni2021orcamento}. O PPA define metas e diretrizes para um período de quatro anos. A LDO estabelece prioridades para o exercício seguinte. A LOA estima receitas e fixa despesas em base anual. Esse encadeamento dá ao orçamento brasileiro uma característica importante para a análise: as decisões financeiras de um ano específico não nascem isoladas, mas como execução de planos plurianuais.
+O orçamento público brasileiro se organiza em três instrumentos integrados: o Plano Plurianual (PPA), a Lei de Diretrizes Orçamentárias (LDO) e a Lei Orçamentária Anual (LOA) \cite{giacomoni2021orcamento}. O PPA define metas e diretrizes para um período de 4 anos. A LDO estabelece prioridades para o exercício seguinte. A LOA estima receitas e fixa despesas em base anual. Esse encadeamento dá ao orçamento brasileiro uma característica importante para a análise: as decisões financeiras de um ano específico não nascem isoladas, mas como execução de planos plurianuais.
 
 As despesas são classificadas em quatro dimensões: institucional (qual órgão executa), funcional (a que função de governo se destina), programática (qual programa atende) e por natureza (tipo de gasto). Cada despesa percorre três estágios distintos antes de virar pagamento efetivo: o empenho reserva o crédito orçamentário, a liquidação verifica o direito do credor e o pagamento efetiva a transferência. A separação entre essas etapas explica fenômenos comuns no debate público, como ``restos a pagar'' e diferenças entre valor empenhado e valor pago. Sem entender essa cadeia, é fácil tirar conclusões equivocadas dos dados.
 
@@ -21,7 +21,7 @@ Paulo Freire oferece um vocabulário próprio para discutir esse problema. Sua n
 
 \section{Data Warehouse e Modelagem Dimensional}
 
-O Data Warehouse (DW) é um repositório voltado para análise, e \citeonline{kimball2013data} resumem suas quatro propriedades em definição clássica: orientado a assunto, integrado, não volátil e variável no tempo. Cada propriedade tem efeito prático sobre o uso analítico.
+O Data Warehouse (DW) é um repositório voltado para análise, e \citeonline{kimball2013data} resumem suas propriedades em definição clássica: orientado a assunto, integrado, não volátil e variável no tempo. Cada propriedade tem efeito prático sobre o uso analítico.
 
 Orientado a assunto significa que os dados são organizados em torno de temas relevantes para análise, como despesas e receitas, e não em torno de processos transacionais como ``cadastro de empenho''. A diferença entre as duas organizações se torna evidente quando o analista pergunta ``quanto a saúde gastou em 2024''. Em um sistema transacional, essa pergunta exige juntar dezenas de tabelas. Em um DW, ela cabe em uma consulta de poucas linhas.
 
