@@ -192,7 +192,7 @@ def render_sidebar_filters() -> FilterState:
     _init_multiselect(K_FUNCOES, func_opts)
     _prune_selection(K_FUNCOES, list(func_opts.keys()))
     st.sidebar.multiselect(
-        "Função (código)",
+        "Função",
         options=list(func_opts.keys()),
         format_func=lambda k, o=func_opts: _format_label(o, k),
         key=K_FUNCOES,
