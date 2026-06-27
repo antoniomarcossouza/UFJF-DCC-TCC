@@ -7,7 +7,7 @@ A organização das páginas segue uma lógica de "visão cidadã": títulos e l
 
 \section{Visão Geral da Execução Orçamentária}
 
-A leitura consolidada da execução orçamentária se distribui entre duas páginas complementares. A Visão Geral Fiscal responde, em primeiro lugar, se arrecadação e pagamentos no recorte filtrado fecham no azul ou no vermelho. Quatro indicadores resumem o recorte: arrecadação, pagamentos, saldo fiscal (diferença entre os dois) e percentual de execução da receita em relação à previsão atualizada. Uma segunda faixa compara arrecadação e pagamentos no último mês com dado disponível dentro do filtro de ano. A terceira faixa exibe série mensal de arrecadação \textit{x} pagamentos, com eixo vertical em escala logarítmica quando a dispersão de magnitudes exige.
+A leitura consolidada da execução orçamentária se distribui entre duas páginas complementares. A Visão Geral Fiscal responde, em primeiro lugar, se arrecadação e pagamentos no recorte filtrado fecham no azul ou no vermelho. Quatro indicadores resumem o recorte: arrecadação, pagamentos, saldo fiscal (diferença entre os dois) e percentual de execução da receita em relação à previsão atualizada. Uma segunda faixa compara arrecadação e pagamentos no último mês com dado disponível dentro do filtro de ano. A terceira faixa exibe série mensal de arrecadação \textit{vs.} pagamentos, com eixo vertical em escala logarítmica quando a dispersão de magnitudes exige.
 
 A página Despesas aprofunda os três estágios da despesa pública municipal. No resumo aparecem valores agregados de empenhado, liquidado e pago, seguidos de razões derivadas dos fatos: percentual liquidado sobre empenhado, pago sobre empenhado e pago sobre liquidado. Esses percentuais não medem execução sobre dotação autorizada, informação está ausente na fonte, conforme discutido no Capítulo~\ref{cap:dw}, mas indicam em que medida o compromisso empenhado se converteu em em saída efetiva de caixa.
 
@@ -22,7 +22,7 @@ A página Despesas aprofunda os três estágios da despesa pública municipal. N
 \begin{figure}[H]
 \begin{center}
 \includegraphics[width=\textwidth]{figs/visao_geral_fiscal_3.png}
-\caption{Visão Geral Fiscal: evolução mensal de arrecadação \textit{x} pagamentos (seção 3).}
+\caption{Visão Geral Fiscal: evolução mensal de arrecadação \textit{vs.} pagamentos (seção 3).}
 \label{fig:visao-geral-fiscal-evolucao}
 \end{center}
 \end{figure}
@@ -67,7 +67,7 @@ O portal publica favorecido e valor pago na planilha de despesa, mas não calcul
 
 \section{Receitas Municipais}
 
-A página Receitas organiza a entrada de recursos. O resumo contrasta previsão atualizada, arrecadação acumulada no recorte, razão realizado/previsão e parcelas classificadas como repasse federal e estadual, utilizando como base nos prefixos de natureza de receita. A seção "De onde vem o dinheiro" agrupa códigos MCASP em origens interpretáveis e exibe barras horizontais por origem. Duas séries temporais comparam previsto e realizado: uma anual (ignorando filtro de ano, mantendo mês e natureza) e outra mês a mês. A seção final "Previsto \textit{x} realizado" usa barra de progresso agregada e tabela por natureza de receita, com percentual de realização linha a linha.
+A página Receitas organiza a entrada de recursos. O resumo contrasta previsão atualizada, arrecadação acumulada no recorte, razão realizado/previsão e parcelas classificadas como repasse federal e estadual, utilizando como base nos prefixos de natureza de receita. A seção "De onde vem o dinheiro" agrupa códigos MCASP em origens interpretáveis e exibe barras horizontais por origem. Duas séries temporais comparam previsto e realizado: uma anual (ignorando filtro de ano, mantendo mês e natureza) e outra mês a mês. A seção final "Previsto \textit{vs.} realizado" usa barra de progresso agregada e tabela por natureza de receita, com percentual de realização linha a linha.
 
 Cruzar previsão e arrecadação no portal implica reconciliar arquivos comparativos e de previsão mensal, além de interpretar códigos de natureza sem ementário unificado. O \textit{warehouse} já integra descrições da STN quando disponíveis; o painel traduz a composição da receita em categorias próximas do debate público, o que aproxima o dado da pergunta "de onde vem o dinheiro da cidade?".
 
@@ -83,7 +83,7 @@ Cruzar previsão e arrecadação no portal implica reconciliar arquivos comparat
 
 Descrever painéis não finaliza o capítulo de resultados. O objetivo freireano do trabalho, capacitar o cidadão a formular leituras próprias, exige interpretar o que os números sugerem quando vistos em conjunto. Três padrões emergem da exploração sistemática do \textit{dashboard} sobre a base materializada.
 
-\textbf{Dependência de transferências.} A composição por origem mostra, de forma recorrente, que transferências correntes respondem por parcela expressiva da arrecadação municipal. Isso não é específico de Juiz de Fora, mas torna visível uma premissa muitas vezes invisível no debate local: parte relevante do "orçamento da cidade" depende de repasses cujas regras são definidas fora do município. Um conselheiro ou vereador pode usar o painel para calibrar expectativas sobre o que a prefeitura controla diretamente \textit{x} o que é efeito de política nacional ou estadual.
+\textbf{Dependência de transferências.} A composição por origem mostra, de forma recorrente, que transferências correntes respondem por parcela expressiva da arrecadação municipal. Isso não é específico de Juiz de Fora, mas torna visível uma premissa muitas vezes invisível no debate local: parte relevante do "orçamento da cidade" depende de repasses cujas regras são definidas fora do município. Um conselheiro ou vereador pode usar o painel para calibrar expectativas sobre o que a prefeitura controla diretamente \textit{vs.} o que é efeito de política nacional ou estadual.
 
 \textbf{Distância entre empenho e pagamento.} Nas páginas de Despesas e Execução Orçamentária, empenhado tende a superar liquidado e pago no mesmo recorte quando o período inclui meses recentes do exercício. Isso reflete o ciclo contábil normal, mas também alerta contra leituras simplistas: "gastou" no sentido de empenho não coincide com "saiu do caixa". Restos a pagar e atrasos de liquidação só seriam mensuráveis com granularidade transacional ou com dotação autorizada, limitações já discutidas.
 
