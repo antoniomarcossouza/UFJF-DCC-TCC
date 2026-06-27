@@ -13,15 +13,16 @@
 \usepackage[portuguese,algoruled,longend, linesnumbered]{algorithm2e}
 \usepackage{listings}
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{booktabs}
 \usepackage{hyperref}
- \hypersetup{colorlinks,
-    debug=false,
-    linkcolor=black,  %%% cor do tableofcontents, \ref, \footnote, etc
-    citecolor=black,  %%% cor do \cite
-    urlcolor=black,   %%% cor do \url e \href
-    bookmarksopen=true,
- }
+\hypersetup{colorlinks,
+   debug=false,
+   linkcolor=black,  %%% cor do tableofcontents, \ref, \footnote, etc
+   citecolor=black,  %%% cor do \cite
+   urlcolor=black,   %%% cor do \url e \href
+   bookmarksopen=true,
+}
 \usepackage[alf,bibjustif]{abntex2cite}
 
 \newcounter{todocounter}
@@ -85,7 +86,7 @@ Agradecer.
 
 % --------------------------------------------------
 \begin{epigrafe}
-``A leitura do mundo precede a leitura da palavra''.\\
+"A leitura do mundo precede a leitura da palavra".\\
 \hfill Paulo Freire
 \end{epigrafe}
 
@@ -108,12 +109,12 @@ LDO   & Lei de Diretrizes Orçamentárias \\
 LOA   & Lei Orçamentária Anual \\
 MCASP & Manual de Contabilidade Aplicada ao Setor Público \\
 MTO   & Manual Técnico de Orçamento \\
+OCR   & \textit{Optical Character Recognition} \\
 PJF   & Prefeitura de Juiz de Fora \\
 PPA   & Plano Plurianual \\
 SCD   & \textit{Slowly Changing Dimension} \\
 SQL   & \textit{Structured Query Language} \\
 STN   & Secretaria do Tesouro Nacional \\
-TCC   & Trabalho de Conclusão de Curso \\
 UFJF  & Universidade Federal de Juiz de Fora \\
 
 \end{tabular}  \thispagestyle{empty}
@@ -125,9 +126,9 @@ UFJF  & Universidade Federal de Juiz de Fora \\
 \input{conteudo/3-trabalhos-relacionados}
 \input{conteudo/4-metodologia}
 \input{conteudo/5-desenvolvimento}
-% \input{conteudo/6-resultados}
-% \input{conteudo/7-avaliacao}
-% \input{conteudo/8-conclusao}
+\input{conteudo/6-resultados}
+\input{conteudo/7-avaliacao}
+\input{conteudo/8-conclusao}
 
 % -----Bibliografia---------------------------------
 \singlespacing
