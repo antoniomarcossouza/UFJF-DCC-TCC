@@ -25,6 +25,10 @@
 }
 \usepackage[alf,bibjustif]{abntex2cite}
 
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+\usetikzlibrary{shapes.geometric, fit, backgrounds}
+
 \newcounter{todocounter}
 \newcommand{\comment}[2][]
 {\stepcounter{todocounter}\todo[caption={\thetodocounter: #2}, #1] 
@@ -64,23 +68,27 @@
 \begin{document}
 \include{pretexto}
 % --------------------------------------------------
-\begin{dedicatoria}
-Pensar em uma dedicatória legal pra por aqui.
-\end{dedicatoria}
+% \begin{dedicatoria}
+% Pensar em uma dedicatória legal pra por aqui.
+% \end{dedicatoria}
 
 
 % --------------------------------------------------
 \resumo{Resumo}
-A divulgação de dados orçamentários municipais tem avançado com a ampliação dos Portais da Transparência, mas a forma como essas informações são disponibilizadas ainda impõe barreiras à compreensão da população. Planilhas extensas, formatos heterogêneos e linguagem técnica dificultam o acompanhamento efetivo da execução orçamentária e limitam o exercício do controle social. Este trabalho propõe o desenvolvimento de um \textit{Data Warehouse} para a análise da execução orçamentária de Juiz de Fora, integrando informações dispersas do Portal da Transparência municipal e estruturando-as em um modelo dimensional. Utiliza-se técnicas de ETL para consolidar dados de despesas e receitas, construindo indicadores com o objetivo de facilitar a interpretação cidadã dos gastos públicos por meio de \textit{dashboards} interativos, permitindo que cidadãos fiscalizem a aplicação de recursos com base em evidências consolidadas e acessíveis.
-\noindent \\ \textbf{Palavras-chave:} transparência pública; orçamento municipal; \textit{data warehouse}; controle social; modelagem dimensional.
+A divulgação de dados orçamentários municipais avançou com a ampliação dos Portais da Transparência, mas a forma como essas informações são disponibilizadas ainda impõe barreiras à compreensão da população. Planilhas extensas, formatos heterogêneos e linguagem técnica dificultam o acompanhamento efetivo da execução orçamentária e limitam o exercício do controle social. Este trabalho propõe e implementa um \textit{Data Warehouse} para análise da execução orçamentária de Juiz de Fora, integrando informações dispersas do Portal da Transparência municipal, do ementário da Secretaria do Tesouro Nacional e da Lei Orçamentária Anual em um modelo dimensional. A pesquisa adota \textit{Design Science Research} como abordagem metodológica e a modelagem dimensional de Kimball como referência técnica. O artefato resultante integra dez dimensões e três tabelas de fatos de despesas e receitas, alimentadas por um \textit{pipeline} de ETL idempotente que documenta explicitamente as inconsistências encontradas nas fontes. O consumo ocorre por meio de sete painéis interativos publicados em instância pública, avaliados comparativamente ao portal original em tarefas representativas de fiscalização. Os resultados mostram uma redução consistente do esforço de consolidação manual exigido do usuário e revelam padrões recorrentes na execução orçamentária municipal, entre eles a dependência de transferências intergovernamentais e a distância entre o empenho e o pagamento efetivo.
+
+\vspace{0.3cm}
+\noindent\textbf{Palavras-chave}: transparência pública; orçamento municipal; \textit{data warehouse}; modelagem dimensional; \textit{design science  research}; controle social.
 
 \resumo{Abstract}
-The disclosure of municipal budget data has advanced with the expansion of Transparency Portals, but the way this information is made available still imposes barriers to public understanding. Extensive spreadsheets, heterogeneous formats, and technical language hinder effective monitoring of budget execution and limit the exercise of social control. This work proposes the development of a Data Warehouse for analyzing budget execution in Juiz de Fora, integrating dispersed information from the municipal Transparency Portal and structuring it into a dimensional model. The research uses ETL techniques to consolidate expenditure and revenue data, building indicators to facilitate citizen interpretation of public spending through interactive dashboards, enabling citizens to monitor the allocation of resources based on consolidated and accessible evidence.
-\noindent \\ \textbf{Keywords:} public transparency; municipal budget; data warehouse; social control; dimensional modeling.
+The disclosure of municipal budget data has advanced with the expansion of Transparency Portals, but the way this information is made available still imposes barriers to public understanding. Extensive spreadsheets, heterogeneous formats, and technical language hinder effective monitoring of budget execution and limit the exercise of social control. This work proposes and implements a Data Warehouse to analyze budget execution in Juiz de Fora, integrating dispersed information from the municipal Transparency Portal, the National Treasury Secretariat's revenue classification catalog, and the Annual Budget Law into a dimensional model. The research adopts Design Science Research as its methodological approach and Kimball's dimensional modeling as its technical reference. The resulting artifact integrates ten dimensions and three fact tables on expenditures and revenues, fed by an idempotent ETL pipeline that explicitly documents the inconsistencies found in the source data. Consumption is provided through seven interactive dashboards published on a public instance and evaluated against the original portal for representative fiscalization tasks. The results show a consistent reduction in the manual consolidation effort required of the user and reveal recurring patterns in municipal budget execution, including dependence on intergovernmental transfers and a gap between commitment and effective payment.
+
+\vspace{0.3cm}
+\noindent\textbf{Keywords}: public transparency; municipal budget; data warehouse; dimensional modeling; design science research; social control.
 
 % --------------------------------------------------
 \agradecimento{Agradecimentos} \indent\indent 
-Agradecer.
+À minha mãe, por todos os sacrifícios que me trouxeram até aqui. À minha namorada e meus amigos, pela companhia e apoio durante essa caminhada. E ao povo brasileiro, que financiou cada dia desta graduação. Universidade pública, gratuita e de qualidade é conquista popular, e é dever de todos defendê-la.
 
 \newpage
 

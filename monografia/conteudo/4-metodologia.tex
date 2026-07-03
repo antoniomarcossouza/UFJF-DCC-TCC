@@ -1,22 +1,300 @@
 \chapter{Metodologia}
 \label{cap:metodologia}
 
-O trabalho combina revisão de literatura, análise documental e desenvolvimento técnico. A escolha por essas etapas responde à natureza do problema: não basta entender a teoria do controle social, nem basta saber construir um Data Warehouse. É preciso fazer os dois conversarem em um caso concreto, com dados reais e suas inconsistências.
+Este capítulo descreve a abordagem metodológica que sustenta o trabalho,
+as etapas executadas e os critérios adotados em cada uma. A escolha
+responde à natureza do problema: não basta entender a teoria do controle
+social, nem basta saber construir um Data Warehouse. É preciso fazer os
+dois conversarem em um artefato concreto, avaliado contra o problema que
+ele se propõe a endereçar.
 
-\section{Etapas}
+\section{Abordagem Metodológica: Design Science Research}
+\label{sec:dsr}
 
-\subsection*{Pesquisa Bibliográfica}
+O trabalho adota a Design Science Research (DSR) como abordagem
+metodológica. DSR é orientada à construção e avaliação de artefatos que
+respondem a problemas práticos relevantes, articulando rigor científico
+e utilidade prática \cite{hevner2004}. Diferentemente de pesquisas
+puramente descritivas ou explicativas, a DSR assume que parte do
+conhecimento sobre um domínio é produzida \emph{pelo} ato de projetar e
+avaliar artefatos nele. Em ciência da computação aplicada, essa
+caracterização vem ganhando espaço como alternativa metodológica
+rigorosa para trabalhos cuja entrega central é um sistema, um modelo ou
+um processo \cite{dresch2015}.
 
-A revisão de literatura cobre as frentes que se cruzam neste trabalho: orçamento público brasileiro (instrumentos, classificações e estágios da despesa), transparência governamental e controle social, modelagem dimensional segundo Kimball e Ross, e \textit{civic tech} aplicada a dados públicos. A bibliografia orienta as decisões teóricas e fornece o vocabulário para interpretar os resultados. A relação entre literatura técnica e literatura sociopolítica é uma escolha deliberada e estabelece a tese central do trabalho: arquitetura de dados é objeto político.
+A escolha por DSR é deliberada e responde a duas características deste
+trabalho. Primeiro, o produto central é um artefato (o Data Warehouse e
+o painel analítico associado), não uma descrição ou uma teoria nova.
+Segundo, a relevância do artefato só pode ser aferida contra o problema
+que ele endereça, a saber, a distância entre a publicação formal de
+dados orçamentários e a possibilidade real de fiscalização cidadã.
+Avaliar o artefato é, portanto, parte constitutiva da pesquisa, e não
+apêndice opcional.
 
-\subsection*{Pesquisa Documental}
+Hevner e colaboradores \cite{hevner2004} propõem sete diretrizes para
+condução de pesquisas em DSR, das quais quatro orientam decisões
+concretas deste trabalho:
 
-A análise documental tem como base o Portal da Transparência da Prefeitura de Juiz de Fora. Inclui o mapeamento das fontes disponíveis (planilhas, relatórios, APIs quando existem), o catálogo de campos por tipo de dado e a documentação das limitações encontradas.
+\begin{itemize}
+    \item \textbf{Artefato como pesquisa}: o Data Warehouse e o painel
+    analítico são o produto central, documentado no Capítulo
+    \ref{cap:dw} em detalhe suficiente para reprodução.
 
-\subsection*{Desenvolvimento Técnico do Data Warehouse}
+    \item \textbf{Relevância do problema}: a justificativa do trabalho
+    parte de lacunas amplamente reconhecidas na literatura de
+    transparência pública brasileira (Capítulos \ref{cap:intro} e
+    \ref{cap:fundamentacao}), não de curiosidade técnica isolada.
 
-O desenvolvimento segue a metodologia de Kimball: identificação dos processos de negócio (execução orçamentária de despesas e de receitas), definição da granularidade, identificação das dimensões relevantes (tempo, unidade administrativa, funcional programática, função e subfunção LOA, natureza da despesa, natureza da receita, fornecedor, fonte de recurso, empenho) e identificação dos fatos (valores empenhado, liquidado e pago para despesa; previsto e arrecadado para receita). As tecnologias escolhidas são: Dagster para orquestração, Python e \texttt{pandas} para extração, DuckDB como banco analítico embarcado, dbt para a modelagem em SQL e Streamlit para os \textit{dashboards}. As decisões técnicas detalhadas vivem no Capítulo~\ref{cap:dw}.
+    \item \textbf{Avaliação}: o artefato é avaliado contra
+    critérios funcionais explícitos, derivados das perguntas de
+    fiscalização levantadas na introdução (Capítulo \ref{cap:avaliacao}).
 
-\subsection*{Estudo de Caso}
+    \item \textbf{Contribuições claras}: o trabalho declara o que oferece
+    de novo em relação ao estado da arte (Capítulo \ref{cap:trabalhos}),
+    distinguindo recorte municipal, integração receita-despesa,
+    documentação de inconsistências e articulação teórica.
+\end{itemize}
 
-A aplicação do modelo a Juiz de Fora cumpre dois papéis. Primeiro, valida o modelo dimensional proposto: se o esquema responde às perguntas do mundo real, ele serve. Segundo, produz documentação dos desafios técnicos encontrados em um município específico, oferecendo referência para futuras adaptações em outras cidades. A escolha de Juiz de Fora não é casual e responde tanto à vinculação institucional do trabalho (UFJF) quanto à existência de portal municipal ativo com dados publicados em formatos minimamente analisáveis.
+O ciclo metodológico segue a estrutura clássica de cinco fases
+\cite{dresch2015}: \emph{consciência do problema}, \emph{sugestão},
+\emph{desenvolvimento}, \emph{avaliação} e \emph{conclusão}. As fases
+não são estanques e o ciclo é iterativo: falhas na fase de
+desenvolvimento realimentaram tanto a sugestão quanto a própria
+formulação do problema, conforme documentado nas seções a seguir e no
+Capítulo \ref{cap:dw}. A correspondência entre fases e capítulos é
+direta:
+
+\begin{itemize}
+    \item Consciência do problema: Capítulos \ref{cap:intro} e
+    \ref{cap:fundamentacao}.
+    \item Sugestão: Capítulos \ref{cap:fundamentacao} e
+    \ref{cap:trabalhos}.
+    \item Desenvolvimento: Capítulo \ref{cap:dw}.
+    \item Avaliação: Capítulo \ref{cap:avaliacao}.
+    \item Conclusão: Capítulo \ref{cap:conclusao}.
+\end{itemize}
+
+\section{Revisão Bibliográfica}
+\label{sec:revisao}
+
+A revisão de literatura cobre três frentes que se cruzam no problema:
+orçamento público brasileiro (instrumentos, classificações e estágios
+da despesa), transparência governamental e controle social, e
+modelagem dimensional segundo \citeonline{kimball2013data}.
+A literatura sobre civic tech aplicada a dados públicos compõe um quarto
+eixo, secundário mas relevante para o posicionamento do trabalho.
+
+A bibliografia cumpre três funções metodológicas distintas. Primeiro,
+fornece o vocabulário técnico para descrever o objeto (PPA, LDO, LOA,
+estágios da despesa, classificação funcional, MCASP). Segundo,
+estabelece a justificativa do problema, com referências empíricas
+sobre a distância entre publicação formal e accountability efetiva.
+Terceiro, sustenta as decisões de modelagem do artefato, com a
+metodologia de Kimball como referência canônica.
+
+A articulação entre literatura técnica e literatura sociopolítica é
+escolha deliberada e estabelece a tese central do trabalho: arquitetura
+de dados é objeto político. Trabalhos que separam as duas tradições
+empobrecem tanto o rigor técnico quanto o impacto cívico.
+
+\section{Pesquisa Documental e Seleção de Fontes}
+\label{sec:documental}
+
+A análise documental tem como base primária o Portal da Transparência
+da Prefeitura de Juiz de Fora, complementado por duas fontes externas:
+o Ementário de Classificação por Natureza da Receita, publicado pela
+Secretaria do Tesouro Nacional (STN), e a Lei Orçamentária Anual
+publicada pela própria prefeitura.
+
+A seleção das fontes seguiu três critérios. Primeiro, cobertura do ciclo
+orçamentário completo: previsão e arrecadação para a receita; empenho,
+liquidação e pagamento para a despesa. Segundo, disponibilidade em
+formato minimamente processável por pipeline automatizado (planilhas
+Excel, mesmo heterogêneas, em vez de PDFs sem estrutura tabular). Quando
+formato tabular não estava disponível, como no caso da classificação
+funcional da LOA, recorreu-se a OCR sobre PDFs escaneados. Terceiro,
+profundidade temporal suficiente para permitir análises de série
+histórica.
+
+A pesquisa documental incluiu, ainda, o mapeamento e catálogo dos campos
+disponíveis em cada fonte, com documentação explícita das
+heterogeneidades encontradas. As inconsistências catalogadas nessa
+etapa não foram tratadas como obstáculo a ser silenciosamente
+contornado, mas como achado de pesquisa, conforme detalhado na Seção
+\ref{sec:inconsistencias}.
+
+\section{Desenvolvimento Iterativo do Artefato}
+\label{sec:desenvolvimento}
+
+A fase de desenvolvimento seguiu a metodologia de 
+\citeonline{kimball2013data} em quatro passos clássicos: identificação dos
+processos de negócio (execução orçamentária de despesas e de receitas),
+definição da granularidade dos fatos, identificação das dimensões
+relevantes (tempo, unidade administrativa, funcional programática,
+função e subfunção LOA, natureza da despesa, natureza da receita,
+fornecedor, fonte de recurso e empenho) e identificação dos fatos
+(valores empenhado, liquidado e pago para despesa; previsto e
+arrecadado para receita).
+
+Esses quatro passos não foram executados em sequência linear. Cada
+ciclo de implementação revelou restrições da fonte que obrigaram a
+revisitar decisões anteriores. A detecção dinâmica de cabeçalho, o
+parser dual para a quebra de layout de 2025-05 e o reconhecimento por
+OCR da classificação funcional da LOA, todos documentados no Capítulo
+\ref{cap:dw}, nasceram de falhas durante a implementação. Cada falha
+foi convertida em decisão de arquitetura documentada, e não em
+correção \emph{ad hoc} silenciosa.
+
+Esse comportamento iterativo é coerente com a fase de desenvolvimento
+em DSR, que prevê ciclos sucessivos de construção e avaliação parcial
+antes da avaliação final do artefato. A escolha da pilha tecnológica
+(Dagster para orquestração, Python e pandas para extração, DuckDB como
+banco analítico, dbt para modelagem em SQL e Streamlit para os
+painéis) responde a critérios de reprodutibilidade local e baixa
+barreira de adoção, discutidos na Seção \ref{sec:reprodutibilidade}. As
+decisões técnicas detalhadas estão no Capítulo \ref{cap:dw}.
+
+Além das decisões relativas ao \textit{warehouse} propriamente dito, o desenvolvimento incorporou um princípio de design para a camada de consumo que foi privilegiar uma \emph{visão cidadã} sobre uma visão puramente contábil. Na prática, isso se traduziu em três escolhas concretas: agrupar códigos oficiais em categorias mais próximas do vocabulário público (por exemplo, transferências federais e estaduais em lugar de códigos MCASP isolados); acompanhar cada página analítica com um glossário integrado e um bloco orientador com perguntas típicas de fiscalização; e evitar jargão contábil nos títulos e legendas, deslocando-o para \textit{tooltips} acionados por demanda. Essas decisões seguem a leitura freireana desenvolvida no Capítulo~\ref{cap:fundamentacao}, na qual a organização da informação não é neutra e condiciona o universo de leitores possíveis.
+
+\section{Documentação de Inconsistências como Achado}
+\label{sec:inconsistencias}
+
+A literatura sobre portais municipais aponta a heterogeneidade dos dados
+publicados como obstáculo central à fiscalização
+\cite{marco2022transparencia, melo2019proposta}. Este trabalho assume uma
+postura metodológica explícita diante desse cenário: inconsistências
+encontradas nas fontes são tratadas como achados de pesquisa, não como
+ruído a ser corrigido silenciosamente.
+
+Em termos práticos, cada anomalia observada durante a extração foi
+registrada e classificada quanto a natureza (mudança de layout, ausência
+de padronização de cabeçalho, código não resolvido contra ementário,
+divergência entre arquivos do mesmo período) e tratamento aplicado
+(parser alternativo, normalização leve, fallback textual, exclusão
+documentada). O Capítulo \ref{cap:dw} documenta cada uma dessas decisões
+ao lado da seção técnica correspondente.
+%, e a Seção \ref{sec:limitacoes} sintetiza as limitações que permanecem.
+
+Essa postura tem fundamento metodológico em DSR: a transparência sobre
+as decisões de projeto é parte do que constitui o artefato como
+contribuição reprodutível, e não opcional cosmético. Tem também
+fundamento normativo: trabalhos sobre transparência pública que
+silenciam sobre suas próprias decisões de tratamento reproduzem
+exatamente o problema que pretendem combater.
+
+\section{Verificação por Invariantes de Domínio}
+\label{sec:invariantes}
+
+Em dados fiscais publicados, falha silenciosa custa caro: um valor
+negativo por erro de parsing, uma quebra de monotonicidade no acumulado
+anual ou uma dimensão com chave duplicada pode virar conclusão errada
+sobre execução orçamentária. A verificação da qualidade dos dados foi,
+portanto, incorporada como etapa metodológica explícita, e não como
+detalhe técnico.
+
+A verificação opera em duas camadas. A primeira aplica testes
+estruturais sobre o modelo dimensional (unicidade e não-nulidade de
+chaves, integridade referencial entre fatos e dimensões, presença das
+medidas obrigatórias), declarados em arquivos de configuração do dbt e
+executados a cada materialização. A segunda aplica invariantes de
+domínio expressas em SQL: a arrecadação acumulada no exercício deve ser
+não-decrescente mês a mês; o valor a realizar deve coincidir com a
+previsão atualizada menos o arrecadado; o acumulado anual não pode ser
+inferior ao acumulado dos meses anteriores na mesma natureza de receita.
+
+A escolha dessas invariantes não é arbitrária: cada uma corresponde a uma
+classe específica de falha plausível dada a forma como o portal publica
+os dados (carga parcial entre meses, parsing equivocado, drift de
+schema). O catálogo completo dos testes está no Capítulo \ref{cap:dw}.
+
+\section{Avaliação Funcional Comparativa}
+\label{sec:metodo_avaliacao}
+
+A fase de avaliação do ciclo DSR foi implementada como uma análise
+funcional comparativa entre o Portal da Transparência da Prefeitura de
+Juiz de Fora e o painel analítico desenvolvido. O critério adotado é
+funcional, e não estético: dada uma pergunta de fiscalização, quantos
+passos cada ambiente exige para respondê-la, com que grau de
+consolidação manual e com que nível de mediação técnica intermediária?
+
+\subsection*{Seleção de tarefas}
+
+As tarefas avaliadas foram derivadas das perguntas exemplares levantadas
+na introdução do trabalho e da literatura sobre uso de portais por organizações de fiscalização \cite{marco2022transparencia}. O conjunto cobre quatro classes de operação:
+
+\begin{itemize}
+    \item Agregação simples sobre uma única dimensão (por exemplo,
+    pagamentos totais por função de governo em um exercício).
+    \item Comparação temporal entre exercícios (por exemplo, evolução de
+    investimento em uma área ao longo de três anos).
+    \item Cruzamento entre fontes (por exemplo, previsão versus
+    arrecadação por natureza de receita).
+    \item Análise de concentração (por exemplo, participação dos cinco
+    maiores fornecedores no total pago).
+\end{itemize}
+
+A escolha das classes assegura que a avaliação não fique restrita a
+operações em que qualquer ferramenta analítica trivialmente supera uma
+planilha bruta.
+
+\subsection*{Critérios de comparação}
+
+Cada tarefa é avaliada em três dimensões:
+
+\begin{itemize}
+    \item \textbf{Número de passos manuais} necessários no portal versus
+    no painel.
+    \item \textbf{Necessidade de consolidação} entre arquivos distintos
+    do portal.
+    \item \textbf{Grau de mediação técnica} requerido (por exemplo,
+    interpretação de códigos MCASP, decodificação de funcional
+    programática).
+\end{itemize}
+
+O resultado consolidado da comparação está na Tabela
+\ref{tab:comparacao-portal-dashboard} do Capítulo \ref{cap:avaliacao}.
+
+\subsection*{Limitações da avaliação}
+
+A avaliação é autoral. Não foram realizados testes de usabilidade com
+usuários finais, e a comparação foi conduzida pelo próprio autor com
+base na reprodução repetida das tarefas em ambos os ambientes. Essa
+limitação é reconhecida explicitamente: a evidência produzida diz
+respeito à \emph{redução de fricção operacional} entre portal e painel,
+não à compreensão efetiva dos dados por cidadãos sem formação
+especializada.
+
+A opção pela avaliação autoral tem três justificativas dentro do escopo
+deste trabalho. Primeiro, o protocolo de comparação é reprodutível: as
+tarefas e os critérios estão documentados e podem ser reaplicados por
+terceiros. Segundo, as tarefas escolhidas estão ancoradas na literatura
+sobre fiscalização cidadã, e não em preferência subjetiva. Terceiro,
+um estudo com usuários exigiria submissão a comitê de ética e
+recrutamento estruturado, fora do escopo de tempo de um TCC. Essa
+extensão fica registrada como trabalho futuro no Capítulo
+\ref{cap:conclusao}.
+
+\section{Compromisso com Reprodutibilidade}
+\label{sec:reprodutibilidade}
+
+Reprodutibilidade foi assumida como princípio metodológico desde o início do projeto, e não como entrega adicional. Para um trabalho que se posiciona como referência metodológica replicável para outros municípios, reprodutibilidade não é opcional, mas sim parte da contribuição.
+
+O compromisso se operacionaliza em quatro decisões concretas. Primeiro, todo o código está versionado em repositório público, com instruções de execução e descrição da pilha tecnológica. Segundo, o pipeline foi projetado para ser idempotente: reexecutar uma partição produz o mesmo estado final do warehouse, sem duplicatas nem lacunas. Terceiro, as chaves substitutas das dimensões são geradas por hash determinístico sobre campos naturais, de modo que o reprocessamento preserva identidade entre execuções. Quarto, o painel analítico está publicado em instância pública (Streamlit Community Cloud), permitindo que qualquer leitor verifique os resultados sem instalar o ambiente localmente.
+Os mecanismos técnicos correspondentes estão detalhados no Capítulo \ref{cap:dw}.
+
+\section{Estudo de Caso: Juiz de Fora}
+\label{sec:estudo_caso}
+
+A aplicação do modelo a Juiz de Fora cumpre dois papéis dentro do ciclo
+DSR. Primeiro, valida o modelo dimensional proposto contra um caso
+concreto: se o esquema responde às perguntas de fiscalização derivadas
+da literatura, ele serve. Segundo, produz documentação dos desafios
+técnicos encontrados em um município específico, oferecendo referência
+para futuras adaptações em outras cidades.
+
+A escolha de Juiz de Fora não é casual e responde a três fatores: a
+vinculação institucional do trabalho (UFJF); a existência de portal
+municipal ativo com dados publicados em formatos minimamente
+analisáveis; e o porte intermediário do município, que torna o caso
+representativo para um universo maior de cidades brasileiras de porte
+médio com infraestrutura digital comparável.
