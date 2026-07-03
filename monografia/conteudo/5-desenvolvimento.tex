@@ -1,48 +1,119 @@
 \chapter{Modelagem e Implementação do Data Warehouse}
 \label{cap:dw}
 
-Este capítulo documenta as decisões técnicas na construção do DW proposto. A exposição segue o fluxo dos dados: fontes públicas, extração, \textit{staging}, modelagem dimensional e camada analítica que alimenta os \textit{dashboards}.
+Este capítulo documenta as decisões técnicas na construção do DW proposto, correspondendo à fase de desenvolvimento do ciclo DSR adotado (Capítulo~\ref{cap:metodologia}). A exposição segue o fluxo dos dados: fontes públicas, extração, \textit{staging}, modelagem dimensional e camada analítica que alimenta os \textit{dashboards}.
 \section{Visão Geral da Arquitetura}
 
 O sistema se organiza em camadas, mostradas na Figura~\ref{fig:arquitetura-dw}: extração, \textit{staging}, \textit{warehouse} dimensional e consumo via \textit{dashboards}. Separar fisicamente essas camadas atende a uma exigência operacional concreta: cada uma tem função definida e pode ser reexecutada sem arrastar as demais. Coleta, transformações e apresentação ficam desacopladas. Portais municipais podem mudar \textit{layout}; quando isso ocorre, o ajuste tende a ficar confinado à extração e ao \textit{staging}, sem reescrever consultas analíticas que já alimentam os \textit{dashboards}.
 
+% \begin{figure}[ht]
+% \begin{center}
+% \begin{tabular}{|l|}
+% \hline
+% \textbf{Fontes} \\
+% Portal Transparência PJF (XLS/XLSX) $\cdot$ STN (Ementário XLSX) \\
+% $\cdot$ LOA PJF (\texttt{Funcionais.zip}, PDF/OCR) \\
+% \hline
+% $\downarrow$ \\
+% \hline
+% \textbf{Extração e Orquestração} (Dagster + Python) \\
+% \texttt{despesa\_mensal\_consolidada}, \texttt{receita\_mensal\_comparativa}, \\
+% \texttt{receita\_mensal\_prevista}, \texttt{stn\_ementario\_natureza\_receita}, \\
+% \texttt{pjf\_loa\_funcao}, \texttt{pjf\_loa\_subfuncao} \\
+% \hline
+% $\downarrow$ \\
+% \hline
+% \textbf{Staging} (DuckDB, \textit{schema} \texttt{stg}, dbt views) \\
+% Deduplicação, normalização leve, separação por layout \\
+% \hline
+% $\downarrow$ \\
+% \hline
+% \textbf{Warehouse Dimensional} (DuckDB, \textit{schema} \texttt{dwh}, dbt tables) \\
+% 10 dimensões + 3 tabelas de fatos (modelagem Kimball) \\
+% \hline
+% $\downarrow$ \\
+% \hline
+% \textbf{Consumo} (Streamlit + Plotly) \\
+% 7 páginas (5 analíticas + Início + Glossário), filtros globais \\
+% \hline
+% \end{tabular}
+% \caption{Camadas do Data Warehouse construído para análise da execução orçamentária de Juiz de Fora.}
+% \label{fig:arquitetura-dw}
+% \end{center}
+% \end{figure}
+
+
 \begin{figure}[ht]
-\begin{center}
-\begin{tabular}{|l|}
-\hline
-\textbf{Fontes} \\
-Portal Transparência PJF (XLS/XLSX) $\cdot$ STN (Ementário XLSX) \\
-$\cdot$ LOA PJF (\texttt{Funcionais.zip}, PDF/OCR) \\
-\hline
-$\downarrow$ \\
-\hline
-\textbf{Extração e Orquestração} (Dagster + Python) \\
-\texttt{despesa\_mensal\_consolidada}, \texttt{receita\_mensal\_comparativa}, \\
-\texttt{receita\_mensal\_prevista}, \texttt{stn\_ementario\_natureza\_receita}, \\
-\texttt{pjf\_loa\_funcao}, \texttt{pjf\_loa\_subfuncao} \\
-\hline
-$\downarrow$ \\
-\hline
-\textbf{Staging} (DuckDB, \textit{schema} \texttt{stg}, dbt views) \\
-Deduplicação, normalização leve, separação por layout \\
-\hline
-$\downarrow$ \\
-\hline
-\textbf{Warehouse Dimensional} (DuckDB, \textit{schema} \texttt{dwh}, dbt tables) \\
-10 dimensões + 3 tabelas de fatos (modelagem Kimball) \\
-\hline
-$\downarrow$ \\
-\hline
-\textbf{Consumo} (Streamlit + Plotly) \\
-7 páginas (5 analíticas + Início + Glossário), filtros globais \\
-\hline
-\end{tabular}
-\caption{Camadas do Data Warehouse construído para análise da execução orçamentária de Juiz de Fora.}
+\centering
+\begin{tikzpicture}[
+    >={Stealth[length=3mm, width=2.5mm]},
+    layer/.style={
+        rectangle,
+        rounded corners=3pt,
+        draw=black!70,
+        thick,
+        minimum width=12cm,
+        minimum height=1.35cm,
+        align=center,
+        inner sep=8pt
+    },
+    arrow/.style={
+        ->,
+        very thick,
+        shorten >=3pt,
+        shorten <=3pt
+    },
+    schemalabel/.style={
+        font=\footnotesize\itshape,
+        anchor=west,
+        text=black!60
+    }
+]
+
+% Camada 1: Fontes Públicas
+\node[layer, fill=gray!8] (fontes) {%
+    \textbf{Fontes Públicas}\\[2pt]
+    \footnotesize Portal da Transparência PJF (XLS/XLSX) $\cdot$ STN Ementário (XLSX) $\cdot$ LOA PJF (PDF/OCR)%
+};
+
+% Camada 2: Extração
+\node[layer, fill=gray!15, below=0.5cm of fontes] (extracao) {%
+    \textbf{Extração e Orquestração}\\[2pt]
+    \footnotesize Dagster $+$ Python $+$ \texttt{pandas} \quad $\longrightarrow$ \quad 6 \textit{assets} particionados%
+};
+
+% Camada 3: Staging
+\node[layer, fill=gray!22, below=0.5cm of extracao] (staging) {%
+    \textbf{Camada de \textit{Staging}} \quad \textnormal{\small(\textit{schema} \texttt{stg})}\\[2pt]
+    \footnotesize DuckDB $+$ dbt \textit{views} \quad $\longrightarrow$ \quad deduplicação, normalização, separação por \textit{layout}%
+};
+
+% Camada 4: Warehouse Dimensional
+\node[layer, fill=gray!30, below=0.5cm of staging] (warehouse) {%
+    \textbf{\textit{Warehouse} Dimensional} \quad \textnormal{\small(\textit{schema} \texttt{dwh})}\\[2pt]
+    \footnotesize DuckDB $+$ dbt \textit{tables} \quad $\longrightarrow$ \quad 10 dimensões $+$ 3 tabelas de fatos (modelagem Kimball)%
+};
+
+% Camada 5: Consumo
+\node[layer, fill=gray!38, below=0.5cm of warehouse] (consumo) {%
+    \textbf{Consumo Analítico}\\[2pt]
+    \footnotesize Streamlit $+$ Plotly \quad $\longrightarrow$ \quad 7 páginas (5 analíticas $+$ Início $+$ Glossário)%
+};
+
+% Setas de fluxo
+\draw[arrow] (fontes) -- (extracao);
+\draw[arrow] (extracao) -- (staging);
+\draw[arrow] (staging) -- (warehouse);
+\draw[arrow] (warehouse) -- (consumo);
+
+\end{tikzpicture}
+\caption{Arquitetura em camadas do \textit{Data Warehouse} construído para análise da execução orçamentária de Juiz de Fora. As setas indicam o fluxo dos dados, das fontes públicas até o consumo analítico, seguindo o padrão \textit{medallion} adaptado.}
 \label{fig:arquitetura-dw}
-\end{center}
 \end{figure}
 
 A arquitetura segue de perto o padrão \textit{medallion} (\textit{bronze}/\textit{silver}/\textit{gold}) com adaptações. Os arquivos brutos ficam em \texttt{data/}, fora do banco. Tabelas brutas e \textit{views} de \textit{staging} compartilham o \textit{schema} \texttt{stg}: Dagster escreve as tabelas e dbt gera as views. O \textit{warehouse} dimensional ocupa o \textit{schema} \texttt{dwh}. A divisão por \textit{schema} torna explícita a fronteira entre dado bruto e dado modelado. Quem inspeciona o banco sabe imediatamente o que veio do portal e o que passou por transformações. Alterar uma modelo do dbt não obriga a baixar de novo planilhas do portal.
+
+Todo o código que sustenta as decisões discutidas neste capítulo está versionado em um repositório público (\url{https://github.com/antoniomarcossouza/UFJF-DCC-TCC}), conforme o compromisso de reprodutibilidade firmado no Capítulo~\ref{cap:metodologia}.
 
 \section{Tecnologias Utilizadas}
 
@@ -154,9 +225,9 @@ O modelo conta com três tabelas de fatos, descritas na Tabela~\ref{tab:fatos}.
 \hline
 \textbf{Tabela} & \textbf{Granularidade} & \textbf{Medidas} \\
 \hline
-\begin{minipage}[t]{2.0cm}\raggedright\path{fct_despesa}\end{minipage} & Linha do arquivo mensal consolidado (combinação de empenho, unidade, fornecedor, funcional, natureza, fonte e datas) & \path{vl_empenhado_mes}, \path{vl_liquidado_mes}, \path{vl_pago_mes} \\
-\begin{minipage}[t]{2.0cm}\raggedright\path{fct_receita}\end{minipage} & Natureza de receita por mês de referência & \path{vl_previsto_mensal}, \path{vl_arrecadada_mes} \\
-\begin{minipage}[t]{2.0cm}\raggedright\path{fct_receita_acumulada}\end{minipage} & Natureza de receita por mês de referência & \path{vl_previsao_inicial_comparativa}, \path{vl_previsao_atualizada}, \path{vl_arrecadada_ano}, \path{vl_a_realizar} \\
+\begin{minipage}[t]{3.0cm}\raggedright\path{fct_despesa}\end{minipage} & Linha do arquivo mensal consolidado (combinação de empenho, unidade, fornecedor, funcional, natureza, fonte e datas) & \path{vl_empenhado_mes}, \path{vl_liquidado_mes}, \path{vl_pago_mes} \\
+\begin{minipage}[t]{3.0cm}\raggedright\path{fct_receita}\end{minipage} & Natureza de receita por mês de referência & \path{vl_previsto_mensal}, \path{vl_arrecadada_mes} \\
+\begin{minipage}[t]{3.0cm}\raggedright\path{fct_receita_acumulada}\end{minipage} & Natureza de receita por mês de referência & \path{vl_previsao_inicial_comparativa}, \path{vl_previsao_atualizada}, \path{vl_arrecadada_ano}, \path{vl_a_realizar} \\
 \hline
 \end{tabular*}
 \end{table}
@@ -174,7 +245,7 @@ O modelo inclui dez dimensões, descritas na Tabela~\ref{tab:dimensoes}.
 \label{tab:dimensoes}
 \centering
 \small
-\begin{tabular}{p{4.5cm} p{8.5cm}}
+\begin{tabular}{p{5.5cm} p{8.5cm}}
 \hline
 \textbf{Dimensão} & \textbf{Conteúdo principal} \\
 \hline
@@ -202,7 +273,7 @@ As dimensões usam chaves substitutas geradas por \texttt{dbt\_utils.generate\_s
 
 \subsection{Esquema Estrela}
 
-As ligações entre fatos e dimensões formam três estrelas que compartilham \texttt{dim\_tempo}. A Figura~\ref{fig:estrelas} representa essas conexões.
+As ligações entre fatos e dimensões formam três tabelas de fatos articuladas por dimensões conformadas, com \texttt{dim\_tempo} como dimensão central e \texttt{dim\_natureza\_receita} compartilhada entre as duas tabelas de receita. A Figura~\ref{fig:estrelas} ilustra essas conexões.
 
 \begin{figure}[ht]
 \begin{center}
@@ -229,6 +300,127 @@ As ligações entre fatos e dimensões formam três estrelas que compartilham \t
 \end{center}
 \end{figure}
 
+\begin{figure}[ht]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tikzpicture}[
+    >={Stealth[length=2.5mm, width=2mm]},
+    fact/.style={
+        rectangle,
+        rounded corners=2pt,
+        draw=black!80,
+        thick,
+        fill=gray!30,
+        minimum width=2.4cm,
+        minimum height=0.9cm,
+        align=center,
+        font=\small\ttfamily
+    },
+    dim/.style={
+        rectangle,
+        rounded corners=2pt,
+        draw=black!60,
+        fill=gray!8,
+        minimum width=2.4cm,
+        minimum height=0.7cm,
+        align=center,
+        font=\footnotesize\ttfamily
+    },
+    dimshared/.style={
+        rectangle,
+        rounded corners=2pt,
+        draw=black!80,
+        thick,
+        fill=gray!18,
+        minimum width=2.4cm,
+        minimum height=0.7cm,
+        align=center,
+        font=\footnotesize\ttfamily
+    },
+    link/.style={
+        -,
+        thick,
+        black!60
+    }
+]
+
+% =============== ESTRELA DE DESPESA (esquerda) ===============
+
+% Fato central da despesa
+\node[fact] (fct_despesa) at (0, 0) {fct\_despesa};
+
+% Dimensões ao redor da despesa (não-compartilhadas)
+\node[dim] (dim_unidade)     at (-3.6, 2.2) {dim\_unidade\_\\administrativa};
+\node[dim] (dim_fornecedor)  at (-3.6, 0.6) {dim\_fornecedor};
+\node[dim] (dim_funcional)   at (-3.6, -1.0) {dim\_funcional\_\\pragmatica};
+\node[dim] (dim_nat_desp)    at (0, -2.4) {dim\_natureza\_\\despesa};
+\node[dim] (dim_fonte)       at (0, 2.4) {dim\_fonte\_recurso};
+\node[dim] (dim_empenho)     at (3.6, -1.0) {dim\_empenho};
+
+% Ligações da despesa
+\draw[link] (fct_despesa) -- (dim_unidade);
+\draw[link] (fct_despesa) -- (dim_fornecedor);
+\draw[link] (fct_despesa) -- (dim_funcional);
+\draw[link] (fct_despesa) -- (dim_nat_desp);
+\draw[link] (fct_despesa) -- (dim_fonte);
+\draw[link] (fct_despesa) -- (dim_empenho);
+
+% =============== DIMENSÕES CONFORMADAS (centro) ===============
+
+% dim_tempo compartilhada — posicionada à direita da fct_despesa
+\node[dimshared] (dim_tempo) at (4.8, 2.2) {dim\_tempo};
+
+% Ligação dim_tempo <-> fct_despesa, com rótulo dos dois papéis sobre a aresta
+\draw[link] (fct_despesa) -- node[
+    midway,
+    sloped,
+    above,
+    font=\scriptsize\itshape,
+    text=black!60
+] {(empenho, liquidação)} (dim_tempo);
+
+% =============== ESTRELAS DE RECEITA (direita) ===============
+
+% Fatos de receita
+\node[fact] (fct_receita)     at (8.6, 1.0) {fct\_receita};
+\node[fact] (fct_rec_acum)    at (8.6, -1.5) {fct\_receita\_\\acumulada};
+
+% Dimensão compartilhada entre as duas receitas
+\node[dimshared] (dim_nat_rec) at (12.4, -0.25) {dim\_natureza\_\\receita};
+
+% Ligações das receitas
+\draw[link] (fct_receita) -- (dim_tempo);
+\draw[link] (fct_rec_acum) -- (dim_tempo);
+\draw[link] (fct_receita) -- (dim_nat_rec);
+\draw[link] (fct_rec_acum) -- (dim_nat_rec);
+
+% =============== LEGENDA ===============
+
+\begin{scope}[on background layer]
+    \node[
+        draw=black!40,
+        dashed,
+        rounded corners=3pt,
+        fill=white,
+        inner sep=4pt,
+        font=\scriptsize
+    ] at (5, -3.6) {%
+        \begin{tabular}{@{}l@{\;\;}l@{}}
+            \tikz\node[fact, minimum width=0.5cm, minimum height=0.25cm, font=\tiny]{}; & Tabela de fatos \\
+            \tikz\node[dim, minimum width=0.5cm, minimum height=0.25cm, font=\tiny]{}; & Dimensão exclusiva \\
+            \tikz\node[dimshared, minimum width=0.5cm, minimum height=0.25cm, font=\tiny]{}; & Dimensão conformada \\
+        \end{tabular}
+    };
+\end{scope}
+
+\end{tikzpicture}
+}
+\caption{Modelo dimensional do \textit{warehouse}: três tabelas de fatos articuladas por dimensões conformadas. \texttt{dim\_tempo} é compartilhada pelas três fatos e atua em dois papéis (\textit{role-playing}) na estrela de despesa. \texttt{dim\_natureza\_receita} é conformada entre \texttt{fct\_receita} e \texttt{fct\_receita\_acumulada}.}
+\label{fig:estrelas}
+\end{figure}
+
+A dimensão \texttt{dim\_tempo} aparece na estrela de despesa em dois papéis distintos: data de empenho e data de liquidação. Esse padrão, conhecido como \textit{role-playing dimension} \cite{kimball2013data}, evita duplicar a estrutura da dimensão temporal para cada relacionamento. Na prática, a mesma tabela física é referenciada por chaves substitutas distintas nos fatos, permitindo análises que filtram simultaneamente por mês de empenho e por mês de liquidação, sem comprometer a integridade do modelo.
+
 Nenhuma dimensão implementa SCD (\textit{slowly changing dimension}). Todas são tipo 1: guardam só o estado mais recente da fonte. Para descrições de natureza no padrão brasileiro, isso costuma bastar, porque a STN revisa ementários em ciclos anuais e as mudanças são pontuais. Reorganizações administrativas do município, apesar de raras, ficariam mal registradas: se uma secretaria mudar de nome, o histórico apareceria com o rótulo novo. Capturar essas mudanças exigiria SCD tipo 2.
 
 \section{Processos de ETL e Idempotência}
@@ -250,8 +442,8 @@ Em dados fiscais publicados, falha silenciosa custa caro: um valor negativo por 
 \hline
 \textbf{Teste} & \textbf{Invariante verificada} \\
 \hline
-\begin{minipage}[t]{5.4cm}\raggedright\path{dq_fct_receita_acumulada_nao_menor_que_mes}\end{minipage} & Valor acumulado no ano deve ser maior ou igual à arrecadação no mês corrente \\
-\begin{minipage}[t]{5.4cm}\raggedright\path{dq_fct_receita_acumulada_monotonicidade}\end{minipage} & Valor acumulado no ano deve ser não decrescente mês a mês, por natureza \\
+\begin{minipage}[t]{6.4cm}\raggedright\path{dq_fct_receita_acumulada_nao_menor_que_mes}\end{minipage} & Valor acumulado no ano deve ser maior ou igual à arrecadação no mês corrente \\
+\begin{minipage}[t]{6.4cm}\raggedright\path{dq_fct_receita_acumulada_monotonicidade}\end{minipage} & Valor acumulado no ano deve ser não decrescente mês a mês, por natureza \\
 \begin{minipage}[t]{5.4cm}\raggedright\path{dq_fct_receita_vl_a_realizar}\end{minipage} & Valor a realizar deve coincidir com previsão atualizada menos arrecadado no ano \\
 \hline
 \end{tabular*}
@@ -263,7 +455,7 @@ Registrar o que o sistema não faz é tão importante quanto descrever o que faz
 
 \subsection{Granularidade da Despesa}
 
-A fonte publica relatórios mensais consolidados, não transações individuais. Análises empenho a empenho exigiriam outras bases. O modelo define o grão pela linha do arquivo, mas os valores em \texttt{fct\_despesa} são movimentação mensal por combinação de dimensões, não atos administrativos isolados.
+A fonte publica relatórios mensais consolidados, não transações individuais. Análises de empenho a empenho exigiriam outras bases. O modelo define o grão pela linha do arquivo, mas os valores em \texttt{fct\_despesa} são movimentações mensais por combinação de dimensões, não atos administrativos isolados.
 
 \subsection{Ausência de Orçamento Autorizado}
 
@@ -273,11 +465,9 @@ O \textit{warehouse} traz empenhado, liquidado e pago, mas não a dotação auto
 
 A dimensão \texttt{dim\_funcional\_pragmatica} guarda o código composto da funcional programática como \textit{string} única nos fatos. Para rotular função e subfunção no \textit{dashboard}, o sistema consulta \texttt{dim\_funcao} e \texttt{dim\_subfuncao}, alimentadas pela LOA PJF do exercício 2026, com \textit{fallback} textual quando o código da execução não consta no ementário carregado.
 
-\subsubsection{Rotulagem LOA e \textit{fallbacks} na execução funcional}
+%\subsubsection{Rotulagem LOA e \textit{fallbacks} na execução funcional}
 
 A revisão de qualidade do \textit{dashboard} quantificou a cobertura dos rótulos LOA na página Execução Orçamentária. Entre os 126 pares distintos função/subfunção presentes na execução, 18 (14{,}3\,\%) exibem \textit{fallback} do tipo \texttt{Função XX} ou \texttt{Subfunção XXX}: o código aparece na movimentação mensal, mas não foi resolvido contra \texttt{dim\_funcao} ou \texttt{dim\_subfuncao}. Os pares de maior volume executado recebem nomes corretos da LOA; os \textit{fallbacks} concentram-se em combinações de menor pagamento acumulado. Ou seja, o problema afeta sobretudo fatias pequenas da execução, mas ainda compromete a legibilidade de cortes que podem ser relevantes para auditoria.
-
-% No \textit{warehouse} materializado no momento da revisão, \texttt{dim\_funcao} contém 26 registros e \texttt{dim\_subfuncao}, 114, abaixo das 29 funções e 117 subfunções validadas pelo \textit{parser} para o exercício 2026. A lacuna indica perda parcial na etapa OCR (\texttt{pdftoppm} + Tesseract) ou rejeição de linhas pelo validador de \textit{layout}, e não falha de \textit{join} no \textit{dashboard}.
 
 As seguintes melhorias aparecem como prioridade para reduzir \textit{fallbacks} sem alterar a interface analítica. Revisão manual ou semi-automática dos PDFs após OCR, com tabela de correções versionada (CSV ou \textit{seed} dbt) para códigos sistematicamente omitidos. Enriquecimento cruzado com a tabela MCASP da STN ou com códigos já presentes em \texttt{dim\_funcional\_pragmatica} na execução, usando a LOA PJF como fonte primária e o ementário nacional como reserva para códigos ausentes no PDF municipal. A longo prazo, solicitar à prefeitura publicação dos dados em formato tabular eliminaria a dependência de OCR.
 
